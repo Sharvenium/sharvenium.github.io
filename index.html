@@ -249,29 +249,29 @@
             loadPosts();
         }
 
-        async function updateUI() {
-            try {
-                const isAuthenticated = await auth0Client.isAuthenticated();
-                const user = isAuthenticated ? await auth0Client.getUser() : null;
+async function updateUI() {
+    try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        const user = isAuthenticated ? await auth0Client.getUser() : null;
 
-                if (isAuthenticated && user) {
-                    const idToken = await auth0Client.getIdToken();
-                    await firebase.auth().signInWithCustomToken(idToken);
+        if (isAuthenticated && user) {
+            // replace getIdToken with getTokenSilently
+            const idToken = await auth0Client.getTokenSilently();
+            await firebase.auth().signInWithCustomToken(idToken);
 
-                    console.log('logged in to firebase as:', user.email);
-                } else {
-                    firebase.auth().signOut();
-                    console.log('logged out of firebase');
-                }
-
-                document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
-                document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
-                document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
-            } catch (e) {
-                console.error('Error updating UI:', e);
-            }
+            console.log('logged in to firebase as:', user.email);
+        } else {
+            firebase.auth().signOut();
+            console.log('logged out of firebase');
         }
 
+        document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
+        document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
+        document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
+    } catch (e) {
+        console.error('Error updating UI:', e);
+    }
+}
         async function publishPost(final = false) {
             const input = document.getElementById('postInput');
             const content = input.value.trim();
