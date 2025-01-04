@@ -6,6 +6,7 @@
     <title>sharvesh's posts</title>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <style>
@@ -182,6 +183,18 @@
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
 
+                async function logAuth0User() {
+                    const isAuthenticated = await auth0Client.isAuthenticated();
+                    if (isAuthenticated) {
+                        const user = await auth0Client.getUser();
+                        console.log('auth0 user id (sub):', user.sub);
+                    } else {
+                        console.log('User is not authenticated.');
+                    }
+                }
+
+                logAuth0User();
+
                 updateUI();
             } catch (e) {
                 console.error("Auth0 init error:", e);
@@ -200,116 +213,101 @@
             };
 
             firebase.initializeApp(firebaseConfig);
+
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    console.log('firebase user:', user);
+                } else {
+                    console.log('no user signed in');
+                }
+            });
+
             loadPosts();
         }
 
-async function updateUI() {
-    const isAuthenticated = await auth0Client.isAuthenticated();
-    const user = isAuthenticated ? await auth0Client.getUser() : null;
+        async function updateUI() {
+            try {
+                const isAuthenticated = await auth0Client.isAuthenticated();
+                const user = isAuthenticated ? await auth0Client.getUser() : null;
 
-    const canEdit = user && user.email === 'sharvenium@gmail.com';
+                if (isAuthenticated && user) {
+                    const idToken = await auth0Client.getIdToken();
+                    await firebase.auth().signInWithCustomToken(idToken);
 
-    document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
-    document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
-    document.getElementById('postContainer').style.display = canEdit ? 'block' : 'none';
-}
-
-
-        async function login() {
-            await auth0Client.loginWithRedirect({
-                authorizationParams: {
-                    redirect_uri: window.location.origin
+                    console.log('logged in to firebase as:', user.email);
+                } else {
+                    firebase.auth().signOut();
+                    console.log('logged out of firebase');
                 }
-            });
+
+                document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
+                document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
+                document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
+            } catch (e) {
+                console.error('Error updating UI:', e);
+            }
         }
 
-        async function logout() {
-            await auth0Client.logout({
-                logoutParams: {
-                    returnTo: window.location.origin
+        async function publishPost(final = false) {
+            const input = document.getElementById('postInput');
+            const content = input.value.trim();
+
+            try {
+                const isAuthenticated = await auth0Client.isAuthenticated();
+                const user = isAuthenticated ? await auth0Client.getUser() : null;
+
+                if (!isAuthenticated || !user || user.sub !== 'google-oauth2|103348245278740132039') {
+                    showToast('You are not authorized to post.');
+                    return;
                 }
-            });
+
+                if (!content) {
+                    showToast('Post content cannot be empty.');
+                    return;
+                }
+
+                const db = firebase.database();
+                const ref = await db.ref('posts').push({
+                    content: content,
+                    timestamp: Date.now(),
+                    final: final
+                });
+                if (final) {
+                    input.value = '';
+                    showToast('Posted!');
+                }
+            } catch (e) {
+                console.error('Error posting:', e);
+                showToast('Error posting.');
+            }
         }
 
-        async function handleTyping(event) {
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            if (!isAuthenticated) return;
+        async function deletePost(postId) {
+            try {
+                const isAuthenticated = await auth0Client.isAuthenticated();
+                const user = isAuthenticated ? await auth0Client.getUser() : null;
 
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => publishPost(false), 300);
+                if (!isAuthenticated || !user || user.sub !== 'google-oauth2|103348245278740132039') {
+                    showToast('You are not authorized to delete this post.');
+                    return;
+                }
+
+                if (!confirm('Delete this post?')) return;
+
+                const db = firebase.database();
+                await db.ref(`posts/${postId}`).remove();
+                showToast('Deleted!');
+            } catch (e) {
+                console.error('Error deleting post:', e);
+                showToast('Error deleting post.');
+            }
         }
-
-async function publishPost(final = false) {
-    const input = document.getElementById('postInput');
-    const content = input.value.trim();
-
-    const isAuthenticated = await auth0Client.isAuthenticated();
-    const user = isAuthenticated ? await auth0Client.getUser() : null;
-
-    if (!isAuthenticated || !user) {
-        showToast('Please log in to post.');
-        return;
-    }
-
-    // log firebase token for debugging
-    const idToken = await firebase.auth().currentUser.getIdTokenResult();
-    console.log('firebase id token claims:', idToken.claims);
-
-    if (user.sub !== 'google-oauth2|103348245278740132039') {
-        showToast('You are not authorized to post.');
-        return;
-    }
-
-    if (!content) {
-        showToast('Post content cannot be empty.');
-        return;
-    }
-
-    try {
-        const db = firebase.database();
-        const ref = await db.ref('posts').push({
-            content: content,
-            timestamp: Date.now(),
-            final: final
-        });
-        if (final) {
-            input.value = '';
-            showToast('Posted!');
-        }
-    } catch (e) {
-        console.error('Error posting:', e);
-        showToast('Error posting.');
-    }
-}
-
-
-async function deletePost(postId) {
-    const isAuthenticated = await auth0Client.isAuthenticated();
-    const user = isAuthenticated ? await auth0Client.getUser() : null;
-
-    if (!isAuthenticated || !user || user.email !== 'sharvenium@gmail.com') {
-        showToast('You are not authorized to delete this post.');
-        return;
-    }
-
-    if (!confirm('Delete this post?')) return;
-
-    try {
-        const db = firebase.database();
-        await db.ref(`posts/${postId}`).remove();
-        showToast('Deleted!');
-    } catch (e) {
-        console.error("Delete error:", e);
-        showToast('Error deleting.');
-    }
-}
-
 
         function searchPosts(query) {
             query = query.toLowerCase();
             const timeline = document.getElementById('timeline');
             timeline.innerHTML = '';
-            
+
             posts.filter(([key, post]) => 
                 post.content.toLowerCase().includes(query)
             ).forEach(([key, post]) => {
@@ -321,9 +319,9 @@ async function deletePost(postId) {
             const date = new Date(post.timestamp);
             const postEl = document.createElement('div');
             postEl.className = 'post';
-            
+
             const isAuthenticated = await auth0Client.isAuthenticated();
-            
+
             postEl.innerHTML = `
                 <div class="post-header">
                     <div class="timestamp">${date.toLocaleString()}</div>
@@ -344,7 +342,7 @@ async function deletePost(postId) {
             db.ref('posts').on('value', async (snapshot) => {
                 const timeline = document.getElementById('timeline');
                 timeline.innerHTML = '';
-                
+
                 const postsData = snapshot.val();
                 if (!postsData) return;
 
@@ -379,42 +377,6 @@ async function deletePost(postId) {
             await initAuth0();
             initFirebase();
         };
-        async function initAuth0() {
-    try {
-        auth0Client = await auth0.createAuth0Client({
-            domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
-            clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
-            authorizationParams: {
-                redirect_uri: window.location.origin
-            }
-        });
-
-        // handle auth0 redirect callback
-        if (window.location.search.includes("code=")) {
-            await auth0Client.handleRedirectCallback();
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-
-        // function to log the user's auth0 unique id
-        async function logAuth0User() {
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            if (isAuthenticated) {
-                const user = await auth0Client.getUser();
-                console.log('auth0 user id (sub):', user.sub); // logs your unique user id
-            } else {
-                console.log('User is not authenticated.');
-            }
-        }
-
-        logAuth0User(); // call this function to log the user's id
-
-        updateUI(); // your existing UI update function
-    } catch (e) {
-        console.error("Auth0 init error:", e);
-    }
-}
-
-
     </script>
 </body>
 </html>
