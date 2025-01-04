@@ -201,6 +201,30 @@
             }
         }
 
+        async function login() {
+            try {
+                await auth0Client.loginWithRedirect({
+                    authorizationParams: {
+                        redirect_uri: window.location.origin
+                    }
+                });
+            } catch (e) {
+                console.error("Login error:", e);
+            }
+        }
+
+        async function logout() {
+            try {
+                await auth0Client.logout({
+                    logoutParams: {
+                        returnTo: window.location.origin
+                    }
+                });
+            } catch (e) {
+                console.error("Logout error:", e);
+            }
+        }
+
         function initFirebase() {
             const firebaseConfig = {
                 apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
