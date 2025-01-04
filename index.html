@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>sharvesh's posts</title>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         body {
             font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
@@ -50,8 +50,8 @@
     <div class="header">
         <h1>sharvesh's posts</h1>
         <div>
-            <button id="loginBtn" onclick="login()">login</button>
-            <button id="logoutBtn" onclick="logout()" style="display:none">logout</button>
+            <button id="loginBtn">login</button>
+            <button id="logoutBtn" style="display:none">logout</button>
         </div>
     </div>
 
@@ -63,20 +63,32 @@
     <div id="timeline"></div>
 
     <script>
-        let auth0 = null;
         let auth0Client = null;
 
-        window.onload = async function() {
-            auth0Client = await createAuth0Client({
-                domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
-                clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
-                authorizationParams: {
-                    redirect_uri: window.location.origin
-                }
-            });
+        async function initAuth0() {
+            try {
+                auth0Client = await auth0.createAuth0Client({
+                    domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+                    clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
+                    authorizationParams: {
+                        redirect_uri: window.location.origin
+                    }
+                });
 
-            // Initialize Firebase
-            firebase.initializeApp({
+                // Check for the callback
+                if (window.location.search.includes("code=")) {
+                    await auth0Client.handleRedirectCallback();
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
+                updateUI();
+            } catch (e) {
+                console.error("Auth0 initialization error:", e);
+            }
+        }
+
+        function initFirebase() {
+            const firebaseConfig = {
                 apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
                 authDomain: "twitterblog-9e7ea.firebaseapp.com",
                 databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -84,19 +96,9 @@
                 storageBucket: "twitterblog-9e7ea.firebasestorage.app",
                 messagingSenderId: "564254133364",
                 appId: "1:564254133364:web:e89a32517db54517369521"
-            });
+            };
 
-            // Check if user is returning from Auth0
-            if (window.location.search.includes("code=")) {
-                try {
-                    await auth0Client.handleRedirectCallback();
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                } catch (error) {
-                    console.error("Error handling redirect:", error);
-                }
-            }
-
-            updateUI();
+            firebase.initializeApp(firebaseConfig);
             loadPosts();
         }
 
@@ -106,8 +108,8 @@
                 document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
                 document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
                 document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
-            } catch (error) {
-                console.error("Error updating UI:", error);
+            } catch (e) {
+                console.error("UI update error:", e);
             }
         }
 
@@ -118,20 +120,20 @@
                         redirect_uri: window.location.origin
                     }
                 });
-            } catch (error) {
-                console.error("Error logging in:", error);
+            } catch (e) {
+                console.error("Login error:", e);
             }
         }
 
         async function logout() {
             try {
-                auth0Client.logout({
+                await auth0Client.logout({
                     logoutParams: {
                         returnTo: window.location.origin
                     }
                 });
-            } catch (error) {
-                console.error("Error logging out:", error);
+            } catch (e) {
+                console.error("Logout error:", e);
             }
         }
 
@@ -147,8 +149,8 @@
                     timestamp: Date.now()
                 });
                 input.value = '';
-            } catch (error) {
-                console.error("Error publishing post:", error);
+            } catch (e) {
+                console.error("Post error:", e);
             }
         }
 
@@ -175,6 +177,16 @@
                     });
             });
         }
+
+        // Initialize everything
+        document.getElementById('loginBtn').onclick = login;
+        document.getElementById('logoutBtn').onclick = logout;
+
+        // Wait for auth0 to load first, then initialize firebase
+        window.onload = async () => {
+            await initAuth0();
+            initFirebase();
+        };
     </script>
 </body>
 </html>
