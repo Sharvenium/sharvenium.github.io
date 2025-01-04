@@ -382,8 +382,41 @@ async function deletePost(postId) {
             await initAuth0();
             initFirebase();
         };
-        const user = await auth0Client.getUser();
-console.log(user.sub); // this logs your unique user id
+        async function initAuth0() {
+    try {
+        auth0Client = await auth0.createAuth0Client({
+            domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+            clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
+            authorizationParams: {
+                redirect_uri: window.location.origin
+            }
+        });
+
+        // handle auth0 redirect callback
+        if (window.location.search.includes("code=")) {
+            await auth0Client.handleRedirectCallback();
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // function to log the user's auth0 unique id
+        async function logAuth0User() {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            if (isAuthenticated) {
+                const user = await auth0Client.getUser();
+                console.log('auth0 user id (sub):', user.sub); // logs your unique user id
+            } else {
+                console.log('User is not authenticated.');
+            }
+        }
+
+        logAuth0User(); // call this function to log the user's id
+
+        updateUI(); // your existing UI update function
+    } catch (e) {
+        console.error("Auth0 init error:", e);
+    }
+}
+
 
     </script>
 </body>
