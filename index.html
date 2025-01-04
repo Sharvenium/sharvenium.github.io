@@ -124,6 +124,31 @@
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+            .writing-indicator {
+        padding: 12px 0;
+        color: var(--accent);
+        text-align: center;
+        border-bottom: 1px solid var(--subtle);
+        margin-bottom: 24px;
+        display: none;
+        opacity: 0.8;
+    }
+
+    .features-toggle {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding: 16px;
+        border: 1px solid var(--subtle);
+        display: none;  /* only shown when logged in */
+    }
+
+    .toggle-switch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     </style>
 </head>
 <body>
@@ -152,6 +177,30 @@
 
     <div id="timeline"></div>
     <div class="toast" id="toast"></div>
+
+        <div class="writing-indicator" id="writingIndicator">
+        sharvesh is writing a post...
+    </div>
+
+    <div class="header">
+        <h1>sharvesh's posts</h1>
+        <div class="controls">
+            <button onclick="toggleTheme()">🌙</button>
+            <button id="loginBtn">login</button>
+            <button id="logoutBtn" style="display:none">logout</button>
+        </div>
+    </div>
+
+    <!-- Admin features panel, only visible when logged in -->
+    <div class="features-toggle" id="featuresPanel">
+        <div class="toggle-switch">
+            <label>
+                Live typing indicator:
+                <input type="checkbox" id="liveTypingToggle" onchange="updateFeatures()" checked>
+            </label>
+        </div>
+    </div>
+
 
     <script>
         let auth0Client = null;
@@ -364,6 +413,152 @@
             await initAuth0();
             initFirebase();
         };
+
+            // Add to existing variables
+    let isLiveTypingEnabled = true;
+    let lastTypingUpdate = null;
+
+    // Modified handleTyping function
+    async function handleTyping(event) {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        if (!isAuthenticated) return;
+
+        // Update writing indicator if enabled
+        if (isLiveTypingEnabled) {
+            const db = firebase.database();
+            const now = Date.now();
+            
+            // Only update every second at most
+            if (!lastTypingUpdate || now - lastTypingUpdate > 1000) {
+                await db.ref('status/writing').set(true);
+                lastTypingUpdate = now;
+            }
+        }
+
+        // Handle draft updates
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => publishPost(false), 1000);
+    }
+
+    // Modified publishPost function
+    async function publishPost(final = false) {
+        const input = document.getElementById('postInput');
+        const content = input.value.trim();
+        
+        if (!content) return;
+        
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        if (!isAuthenticated) {
+            showToast('Please login to post');
+            return;
+        }
+
+        try {
+            const db = firebase.database();
+            
+            if (final) {
+                // If this is a final post, remove draft and create new post
+                if (currentDraft) {
+                    await db.ref(`posts/${currentDraft}`).remove();
+                    currentDraft = null;
+                }
+                await db.ref('posts').push({
+                    content,
+                    timestamp: Date.now(),
+                    final: true
+                });
+                input.value = '';
+                await db.ref('status/writing').remove();
+                showToast('Posted!');
+            } else if (!currentDraft) {
+                // Only create a draft if we don't have one
+                const ref = await db.ref('posts').push({
+                    content,
+                    timestamp: Date.now(),
+                    final: false
+                });
+                currentDraft = ref.key;
+            } else {
+                // Update existing draft
+                await db.ref(`posts/${currentDraft}`).update({
+                    content,
+                    timestamp: Date.now()
+                });
+            }
+        } catch (e) {
+            console.error("Post error:", e);
+            showToast('Error posting');
+        }
+    }
+
+    // Add feature toggle handling
+    function updateFeatures() {
+        isLiveTypingEnabled = document.getElementById('liveTypingToggle').checked;
+        localStorage.setItem('liveTypingEnabled', isLiveTypingEnabled);
+        
+        if (!isLiveTypingEnabled) {
+            const db = firebase.database();
+            db.ref('status/writing').remove();
+        }
+    }
+
+    // Modified loadPosts to include writing status
+    function loadPosts() {
+        const db = firebase.database();
+        
+        // Listen for writing status changes
+        db.ref('status/writing').on('value', (snapshot) => {
+            const isWriting = snapshot.val();
+            document.getElementById('writingIndicator').style.display = 
+                isWriting ? 'block' : 'none';
+        });
+
+        // Existing posts listener
+        db.ref('posts').on('value', async (snapshot) => {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            
+            const postsData = snapshot.val();
+            if (!postsData) return;
+
+            posts = Object.entries(postsData)
+                .sort(([,a], [,b]) => b.timestamp - a.timestamp)
+                .filter(([,post]) => post.final || post.id === currentDraft);
+
+            posts.forEach(([key, post]) => {
+                renderPost(key, post, timeline);
+            });
+        });
+    }
+
+    // Modify updateUI to show features panel
+    async function updateUI() {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
+        document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
+        document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
+        document.getElementById('featuresPanel').style.display = isAuthenticated ? 'block' : 'none';
+        
+        // Load saved preferences
+        if (isAuthenticated) {
+            const savedLiveTyping = localStorage.getItem('liveTypingEnabled');
+            isLiveTypingEnabled = savedLiveTyping === null ? true : savedLiveTyping === 'true';
+            document.getElementById('liveTypingToggle').checked = isLiveTypingEnabled;
+        }
+    }
+
+    // Clean up when logging out
+    async function logout() {
+        const db = firebase.database();
+        await db.ref('status/writing').remove();
+        
+        await auth0Client.logout({
+            logoutParams: {
+                returnTo: window.location.origin
+            }
+        });
+    }
+
     </script>
 </body>
 </html>
