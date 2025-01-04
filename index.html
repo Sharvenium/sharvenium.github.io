@@ -47,6 +47,7 @@
             font-size: 24px;
             font-weight: 500;
             margin: 0;
+            font-family: 'Courier New', monospace;
         }
 
         .controls {
@@ -63,6 +64,7 @@
             cursor: pointer;
             opacity: 0.7;
             transition: opacity 0.2s;
+            font-family: 'Courier New', monospace;
         }
 
         button:hover {
@@ -72,7 +74,7 @@
         input, textarea {
             width: 100%;
             padding: 12px;
-            font-family: inherit;
+            font-family: 'Courier New', monospace;
             font-size: inherit;
             border: 1px solid var(--subtle);
             background: var(--bg);
@@ -96,14 +98,20 @@
             align-items: center;
             margin-bottom: 16px;
             font-size: 14px;
+            font-family: 'Courier New', monospace;
         }
 
         .timestamp {
             color: var(--accent);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
         }
 
         .content {
             white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+            letter-spacing: 0.5px;
         }
 
         .markdown-help {
@@ -112,6 +120,7 @@
             margin-bottom: 24px;
             font-size: 14px;
             display: none;
+            font-family: 'Courier New', monospace;
         }
 
         .post-actions {
@@ -130,6 +139,19 @@
             font-size: 14px;
             display: none;
             animation: slideIn 0.3s ease-out;
+            font-family: 'Courier New', monospace;
+        }
+
+        .typing-indicator {
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--subtle);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
         }
 
         @keyframes slideIn {
@@ -163,11 +185,12 @@
         </div>
 
         <textarea id="postInput" 
-                  placeholder="what's on your mind?"></textarea>
+                  placeholder="commence transmission..."
+                  oninput="handleTyping(this.value)"></textarea>
 
         <div class="post-actions">
             <button onclick="toggleMarkdownHelp()">formatting help</button>
-            <button onclick="publishPost()">post</button>
+            <button onclick="publishPost(true)">end transmission</button>
         </div>
     </div>
 
@@ -178,6 +201,8 @@
         let auth0Client = null;
         let posts = [];
         let isDark = localStorage.getItem('theme') === 'dark';
+        let typingTimeout = null;
+        let lastContent = '';
 
         if (isDark) {
             document.documentElement.setAttribute('data-theme', 'dark');
@@ -248,10 +273,19 @@
             });
         }
 
-        async function publishPost() {
+        async function handleTyping(content) {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            if (!isAuthenticated) return;
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => publishPost(false), 500);
+            lastContent = content;
+        }
+
+        async function publishPost(final = false) {
             const input = document.getElementById('postInput');
-            const content = input.value.trim();
-            if (!content) return;
+            const content = input.value;
+            if (!final && content === lastContent) return;
 
             const isAuthenticated = await auth0Client.isAuthenticated();
             if (!isAuthenticated) {
@@ -264,13 +298,16 @@
                 await db.ref('posts').push({
                     content,
                     timestamp: Date.now(),
-                    markdown: true
+                    markdown: true,
+                    final: final
                 });
-                input.value = '';
-                showToast('Posted! 📝');
+                if (final) {
+                    input.value = '';
+                    showToast('Transmission complete 📡');
+                }
             } catch (e) {
                 console.error("Post error:", e);
-                showToast('Error posting 😕');
+                showToast('Error in transmission 😕');
             }
         }
 
@@ -278,15 +315,15 @@
             const isAuthenticated = await auth0Client.isAuthenticated();
             if (!isAuthenticated) return;
 
-            if (!confirm('Delete this post?')) return;
+            if (!confirm('Delete this transmission?')) return;
             
             try {
                 const db = firebase.database();
                 await db.ref(`posts/${postId}`).remove();
-                showToast('Deleted! 🗑️');
+                showToast('Transmission deleted 🗑️');
             } catch (e) {
                 console.error("Delete error:", e);
-                showToast('Error deleting 😕');
+                showToast('Error deleting transmission 😕');
             }
         }
 
@@ -311,10 +348,10 @@
             
             postEl.innerHTML = `
                 <div class="post-header">
-                    <div class="timestamp">${date.toLocaleString()}</div>
+                    <div class="timestamp">[${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}] TRANSMISSION #${key.slice(-5).toUpperCase()}</div>
                     ${isAuthenticated ? `
                     <div class="post-actions">
-                        <button onclick="deletePost('${key}')">delete</button>
+                        <button onclick="deletePost('${key}')">delete transmission</button>
                     </div>
                     ` : ''}
                 </div>
