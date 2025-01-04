@@ -124,59 +124,6 @@
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-            .writing-indicator {
-        padding: 12px 0;
-        color: var(--accent);
-        text-align: center;
-        border-bottom: 1px solid var(--subtle);
-        margin-bottom: 24px;
-        display: none;
-        opacity: 0.8;
-    }
-
-    .features-toggle {
-        display: flex;
-        gap: 16px;
-        margin-bottom: 24px;
-        padding: 16px;
-        border: 1px solid var(--subtle);
-        display: none;  /* only shown when logged in */
-    }
-
-    .toggle-switch {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-        .chat-box {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 300px;
-    background: var(--bg);
-    border: 1px solid var(--subtle);
-    display: none;
-    z-index: 1000;
-}
-.chat-messages {
-    height: 300px;
-    overflow-y: auto;
-    padding: 16px;
-    border-bottom: 1px solid var(--subtle);
-}
-.chat-input {
-    display: flex;
-    padding: 8px;
-    gap: 8px;
-}
-.chat-input input {
-    margin: 0;
-}
-.message { margin-bottom: 8px; }
-.message .time { 
-    color: var(--accent);
-    font-size: 12px;
-}
     </style>
 </head>
 <body>
@@ -202,52 +149,16 @@
             <button onclick="publishPost(true)">post</button>
         </div>
     </div>
-<div class="chat-box" id="chatBox">
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input">
-        <input type="text" placeholder="send message..." id="chatInput" onkeypress="if(event.key === 'Enter') sendMessage()">
-        <button onclick="sendMessage()">send</button>
-    </div>
-</div>
+
     <div id="timeline"></div>
     <div class="toast" id="toast"></div>
 
-  <div class="writing-indicator" id="writingIndicator">
-        sharvesh is writing a post...
-    </div>
-
-    <div class="header">
-        <h1>sharvesh's posts</h1>
-        <div class="controls">
-            <button onclick="toggleTheme()">🌙</button>
-            <button id="loginBtn">login</button>
-            <button id="logoutBtn" style="display:none">logout</button>
-        </div>
-    </div>
-
-    <!-- Admin features panel, only visible when logged in -->
-    <div class="features-toggle" id="featuresPanel">
-        <div class="toggle-switch">
-            <label>
-                Live typing indicator:
-                <input type="checkbox" id="liveTypingToggle" onchange="updateFeatures()" checked>
-            </label>
-        </div>
-    </div>
-<div class="toggle-switch">
-    <label>
-        Live chat:
-        <input type="checkbox" id="chatToggle" onchange="updateFeatures()" checked>
-    </label>
-</div>
-    
     <script>
         let auth0Client = null;
         let posts = [];
         let isDark = localStorage.getItem('theme') === 'dark';
         let currentDraft = null;
         let typingTimeout = null;
-        let isChatEnabled = true;
 
         if (isDark) {
             document.documentElement.setAttribute('data-theme', 'dark');
@@ -448,204 +359,11 @@
         // Initialize
         document.getElementById('loginBtn').onclick = login;
         document.getElementById('logoutBtn').onclick = logout;
-function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    if (!message) return;
-    
-    const db = firebase.database();
-    db.ref('chats').push({
-        message,
-        timestamp: Date.now(),
-        anonymous: true
-    });
-    input.value = '';
-}
 
-function updateFeatures() {
-    isLiveTypingEnabled = document.getElementById('liveTypingToggle').checked;
-    isChatEnabled = document.getElementById('chatToggle').checked;
-    localStorage.setItem('liveTypingEnabled', isLiveTypingEnabled);
-    localStorage.setItem('chatEnabled', isChatEnabled);
-    
-    if (!isLiveTypingEnabled) {
-        const db = firebase.database();
-        db.ref('status/writing').remove();
-    }
-    document.getElementById('chatBox').style.display = 
-        (isLiveTypingEnabled && isChatEnabled && document.getElementById('writingIndicator').style.display === 'block') 
-        ? 'block' : 'none';
-}
         window.onload = async () => {
             await initAuth0();
             initFirebase();
         };
-
-         // Add to existing variables
-    let isLiveTypingEnabled = true;
-    let lastTypingUpdate = null;
-
-    // Modified handleTyping function
-    async function handleTyping(event) {
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        if (!isAuthenticated) return;
-
-        // Update writing indicator if enabled
-        if (isLiveTypingEnabled) {
-            const db = firebase.database();
-            const now = Date.now();
-            
-            // Only update every second at most
-            if (!lastTypingUpdate || now - lastTypingUpdate > 1000) {
-                await db.ref('status/writing').set(true);
-                lastTypingUpdate = now;
-            }
-        }
-
-        // Handle draft updates
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => publishPost(false), 1000);
-    }
-
-    // Modified publishPost function
-    async function publishPost(final = false) {
-        const input = document.getElementById('postInput');
-        const content = input.value.trim();
-        
-        if (!content) return;
-        
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        if (!isAuthenticated) {
-            showToast('Please login to post');
-            return;
-        }
-
-        try {
-            const db = firebase.database();
-            
-            if (final) {
-                // If this is a final post, remove draft and create new post
-                if (currentDraft) {
-                    await db.ref(`posts/${currentDraft}`).remove();
-                    currentDraft = null;
-                }
-                await db.ref('posts').push({
-                    content,
-                    timestamp: Date.now(),
-                    final: true
-                });
-                input.value = '';
-                await db.ref('status/writing').remove();
-                showToast('Posted!');
-            } else if (!currentDraft) {
-                // Only create a draft if we don't have one
-                const ref = await db.ref('posts').push({
-                    content,
-                    timestamp: Date.now(),
-                    final: false
-                });
-                currentDraft = ref.key;
-            } else {
-                // Update existing draft
-                await db.ref(`posts/${currentDraft}`).update({
-                    content,
-                    timestamp: Date.now()
-                });
-            }
-        } catch (e) {
-            console.error("Post error:", e);
-            showToast('Error posting');
-        }
-    }
-
-    // Add feature toggle handling
-    function updateFeatures() {
-        isLiveTypingEnabled = document.getElementById('liveTypingToggle').checked;
-        localStorage.setItem('liveTypingEnabled', isLiveTypingEnabled);
-        
-        if (!isLiveTypingEnabled) {
-            const db = firebase.database();
-            db.ref('status/writing').remove();
-        }
-    }
-
-    // Modified loadPosts to include writing status
-    function loadPosts() {
-        const db = firebase.database();
-        
-        // Listen for writing status changes
-db.ref('status/writing').on('value', (snapshot) => {
-    const isWriting = snapshot.val();
-    const showWriting = document.getElementById('writingIndicator').style.display = isWriting ? 'block' : 'none';
-    document.getElementById('chatBox').style.display = 
-        (isWriting && isLiveTypingEnabled && isChatEnabled) ? 'block' : 'none';
-});
-        // Existing posts listener
-        db.ref('posts').on('value', async (snapshot) => {
-            const timeline = document.getElementById('timeline');
-            timeline.innerHTML = '';
-            
-            const postsData = snapshot.val();
-            if (!postsData) return;
-
-            posts = Object.entries(postsData)
-                .sort(([,a], [,b]) => b.timestamp - a.timestamp)
-                .filter(([,post]) => post.final || post.id === currentDraft);
-
-            posts.forEach(([key, post]) => {
-                renderPost(key, post, timeline);
-            });
-        });
-    }
-        db.ref('chats').orderByChild('timestamp').limitToLast(100).on('value', (snapshot) => {
-    const messages = document.getElementById('chatMessages');
-    messages.innerHTML = '';
-    
-    const chats = snapshot.val();
-    if (!chats) return;
-
-    Object.entries(chats)
-        .sort(([,a], [,b]) => a.timestamp - b.timestamp)
-        .forEach(([key, chat]) => {
-            const date = new Date(chat.timestamp);
-            const div = document.createElement('div');
-            div.className = 'message';
-            div.innerHTML = `
-                <div class="time">${date.toLocaleTimeString()}</div>
-                ${chat.message}
-            `;
-            messages.appendChild(div);
-            messages.scrollTop = messages.scrollHeight;
-        });
-});
-
-    // Modify updateUI to show features panel
-    async function updateUI() {
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
-        document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
-        document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
-        document.getElementById('featuresPanel').style.display = isAuthenticated ? 'block' : 'none';
-        
-        // Load saved preferences
-        if (isAuthenticated) {
-            const savedLiveTyping = localStorage.getItem('liveTypingEnabled');
-            isLiveTypingEnabled = savedLiveTyping === null ? true : savedLiveTyping === 'true';
-            document.getElementById('liveTypingToggle').checked = isLiveTypingEnabled;
-        }
-    }
-
-    // Clean up when logging out
-    async function logout() {
-        const db = firebase.database();
-        await db.ref('status/writing').remove();
-        
-        await auth0Client.logout({
-            logoutParams: {
-                returnTo: window.location.origin
-            }
-        });
-    }
     </script>
 </body>
 </html>
