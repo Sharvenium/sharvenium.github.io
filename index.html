@@ -229,7 +229,53 @@
     </style>
 </head>
 <body>
-    <script>
+        <h1>sharvesh's posts</h1>
+        <div class="controls">
+            <button onclick="toggleTheme()">🌙</button>
+            <button id="loginBtn">login</button>
+            <button id="logoutBtn" style="display:none">logout</button>
+        </div>
+    </div>
+
+    <input type="text" 
+           placeholder="search posts..." 
+           onkeyup="searchPosts(this.value)">
+
+    <div id="postContainer" style="display:none">
+        <div class="markdown-help" id="markdownHelp">
+            <strong>Markdown Guide:</strong><br>
+            # heading 1<br>
+            ## heading 2<br>
+            **bold** or __bold__<br>
+            *italic* or _italic_<br>
+            [link](url)<br>
+            ![image](url)<br>
+            `code`<br>
+            ```language<br>
+            code block<br>
+            ```
+        </div>
+
+        <div class="drop-zone" id="dropZone">
+            Drop images here or click to upload
+            <input type="file" accept="image/*" id="fileInput" multiple>
+        </div>
+        
+        <div class="upload-progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <textarea id="postInput" 
+                  placeholder="what's on your mind? markdown supported, drag & drop images, paste links"></textarea>
+        <div style="display: flex; justify-content: space-between;">
+            <button onclick="toggleMarkdownHelp()">formatting help</button>
+            <button onclick="publishPost()">post</button>
+        </div>
+    </div>
+
+    <div id="timeline"></div>
+    <div class="toast" id="toast"></div>
+        <script>
     let auth0Client = null;
     let posts = [];
     let isDark = localStorage.getItem('theme') === 'dark';
@@ -514,51 +560,6 @@
     };
 </script>
     <div class="header">
-        <h1>sharvesh's posts</h1>
-        <div class="controls">
-            <button onclick="toggleTheme()">🌙</button>
-            <button id="loginBtn">login</button>
-            <button id="logoutBtn" style="display:none">logout</button>
-        </div>
-    </div>
 
-    <input type="text" 
-           placeholder="search posts..." 
-           onkeyup="searchPosts(this.value)">
-
-    <div id="postContainer" style="display:none">
-        <div class="markdown-help" id="markdownHelp">
-            <strong>Markdown Guide:</strong><br>
-            # heading 1<br>
-            ## heading 2<br>
-            **bold** or __bold__<br>
-            *italic* or _italic_<br>
-            [link](url)<br>
-            ![image](url)<br>
-            `code`<br>
-            ```language<br>
-            code block<br>
-            ```
-        </div>
-
-        <div class="drop-zone" id="dropZone">
-            Drop images here or click to upload
-            <input type="file" accept="image/*" id="fileInput" multiple>
-        </div>
-        
-        <div class="upload-progress">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-
-        <textarea id="postInput" 
-                  placeholder="what's on your mind? markdown supported, drag & drop images, paste links"></textarea>
-        <div style="display: flex; justify-content: space-between;">
-            <button onclick="toggleMarkdownHelp()">formatting help</button>
-            <button onclick="publishPost()">post</button>
-        </div>
-    </div>
-
-    <div id="timeline"></div>
-    <div class="toast" id="toast"></div>
 </body>
 </html>
