@@ -4,23 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>sharvesh's posts</title>
-    <!-- Core -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-    <!-- Markdown -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
-    <!-- Twitter -->
-    <script async src="https://platform.twitter.com/widgets.js"></script>
     <style>
         :root {
             --bg: #ffffff;
             --text: #000000;
             --subtle: #f0f0f0;
-            --accent: #555555;
+            --accent: #666666;
         }
 
         [data-theme="dark"] {
@@ -28,6 +22,10 @@
             --text: #ffffff;
             --subtle: #222222;
             --accent: #999999;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -45,28 +43,41 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--subtle);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
         }
 
         .controls {
             display: flex;
-            gap: 12px;
+            gap: 16px;
             align-items: center;
         }
 
         button {
-            background: none;
-            border: none;
             padding: 8px 16px;
-            cursor: pointer;
+            background: var(--subtle);
+            border: none;
+            border-radius: 6px;
             color: var(--text);
-            opacity: 0.7;
+            cursor: pointer;
+            font-size: 14px;
             transition: opacity 0.2s;
-            font-size: inherit;
         }
 
         button:hover {
-            opacity: 1;
+            opacity: 0.8;
+        }
+
+        .theme-toggle {
+            padding: 8px;
+            font-size: 16px;
         }
 
         input, textarea {
@@ -75,10 +86,10 @@
             font-family: inherit;
             font-size: inherit;
             border: 1px solid var(--subtle);
+            border-radius: 6px;
             background: var(--bg);
             color: var(--text);
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         textarea {
@@ -88,10 +99,11 @@
 
         .drop-zone {
             border: 2px dashed var(--subtle);
-            padding: 20px;
+            padding: 24px;
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
             color: var(--accent);
+            border-radius: 6px;
             transition: all 0.3s ease;
         }
 
@@ -104,24 +116,9 @@
             display: none;
         }
 
-        .upload-progress {
-            height: 2px;
-            background: var(--subtle);
-            margin-bottom: 16px;
-            display: none;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: var(--text);
-            width: 0;
-            transition: width 0.3s ease;
-        }
-
         .post {
             padding: 24px 0;
             border-bottom: 1px solid var(--subtle);
-            position: relative;
         }
 
         .post-header {
@@ -129,7 +126,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 16px;
-            font-size: 0.9em;
+            font-size: 14px;
         }
 
         .timestamp {
@@ -137,58 +134,28 @@
         }
 
         .content {
-            line-height: 1.6;
-        }
-
-        .content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 4px;
-            margin: 8px 0;
-        }
-
-        .content pre {
-            background: var(--subtle);
-            padding: 16px;
-            border-radius: 4px;
-            overflow-x: auto;
-        }
-
-        .content code {
-            font-family: 'SF Mono', Menlo, monospace;
-            font-size: 0.9em;
-        }
-
-        .content a {
-            color: var(--text);
-            text-decoration-thickness: 1px;
+            white-space: pre-wrap;
         }
 
         .markdown-help {
             background: var(--subtle);
             padding: 16px;
-            border-radius: 4px;
-            margin-bottom: 16px;
-            font-size: 0.9em;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            font-size: 14px;
             display: none;
         }
 
-        .youtube-embed {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            max-width: 100%;
-            margin: 16px 0;
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            gap: 12px;
         }
 
-        .youtube-embed iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
+        .post-actions button {
+            font-size: 13px;
+            padding: 6px 12px;
         }
 
         .toast {
@@ -198,8 +165,8 @@
             background: var(--text);
             color: var(--bg);
             padding: 12px 24px;
-            border-radius: 4px;
-            font-size: 0.9em;
+            border-radius: 6px;
+            font-size: 14px;
             display: none;
             animation: slideIn 0.3s ease-out;
         }
@@ -207,18 +174,6 @@
         @keyframes slideIn {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
-        }
-
-        .post-actions {
-            position: absolute;
-            right: 0;
-            top: 24px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .post:hover .post-actions {
-            opacity: 1;
         }
 
         @media (max-width: 600px) {
@@ -229,9 +184,10 @@
     </style>
 </head>
 <body>
+    <div class="header">
         <h1>sharvesh's posts</h1>
         <div class="controls">
-            <button onclick="toggleTheme()">🌙</button>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
             <button id="loginBtn">login</button>
             <button id="logoutBtn" style="display:none">logout</button>
         </div>
@@ -243,31 +199,25 @@
 
     <div id="postContainer" style="display:none">
         <div class="markdown-help" id="markdownHelp">
-            <strong>Markdown Guide:</strong><br>
+            <strong>markdown guide:</strong><br>
             # heading 1<br>
             ## heading 2<br>
             **bold** or __bold__<br>
             *italic* or _italic_<br>
             [link](url)<br>
             ![image](url)<br>
-            `code`<br>
-            ```language<br>
-            code block<br>
-            ```
+            `code`
         </div>
 
         <div class="drop-zone" id="dropZone">
             Drop images here or click to upload
             <input type="file" accept="image/*" id="fileInput" multiple>
         </div>
-        
-        <div class="upload-progress">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
 
         <textarea id="postInput" 
                   placeholder="what's on your mind? markdown supported, drag & drop images, paste links"></textarea>
-        <div style="display: flex; justify-content: space-between;">
+
+        <div class="post-actions">
             <button onclick="toggleMarkdownHelp()">formatting help</button>
             <button onclick="publishPost()">post</button>
         </div>
@@ -275,7 +225,8 @@
 
     <div id="timeline"></div>
     <div class="toast" id="toast"></div>
-        <script>
+
+<script>
     let auth0Client = null;
     let posts = [];
     let isDark = localStorage.getItem('theme') === 'dark';
@@ -559,7 +510,5 @@
         initFirebase();
     };
 </script>
-    <div class="header">
-
 </body>
 </html>
