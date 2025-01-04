@@ -7,13 +7,12 @@
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <style>
         :root {
             --bg: #ffffff;
             --text: #000000;
-            --subtle: #f0f0f0;
+            --subtle: #eaeaea;
             --accent: #666666;
         }
 
@@ -22,10 +21,6 @@
             --text: #ffffff;
             --subtle: #222222;
             --accent: #999999;
-        }
-
-        * {
-            box-sizing: border-box;
         }
 
         body {
@@ -50,7 +45,7 @@
 
         h1 {
             font-size: 24px;
-            font-weight: 600;
+            font-weight: 500;
             margin: 0;
         }
 
@@ -62,22 +57,16 @@
 
         button {
             padding: 8px 16px;
-            background: var(--subtle);
+            background: none;
             border: none;
-            border-radius: 6px;
             color: var(--text);
             cursor: pointer;
-            font-size: 14px;
+            opacity: 0.7;
             transition: opacity 0.2s;
         }
 
         button:hover {
-            opacity: 0.8;
-        }
-
-        .theme-toggle {
-            padding: 8px;
-            font-size: 16px;
+            opacity: 1;
         }
 
         input, textarea {
@@ -86,7 +75,6 @@
             font-family: inherit;
             font-size: inherit;
             border: 1px solid var(--subtle);
-            border-radius: 6px;
             background: var(--bg);
             color: var(--text);
             margin-bottom: 24px;
@@ -95,25 +83,6 @@
         textarea {
             height: 150px;
             resize: vertical;
-        }
-
-        .drop-zone {
-            border: 2px dashed var(--subtle);
-            padding: 24px;
-            text-align: center;
-            margin-bottom: 24px;
-            color: var(--accent);
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
-
-        .drop-zone.drag-over {
-            border-color: var(--text);
-            background: var(--subtle);
-        }
-
-        .drop-zone input {
-            display: none;
         }
 
         .post {
@@ -140,7 +109,6 @@
         .markdown-help {
             background: var(--subtle);
             padding: 16px;
-            border-radius: 6px;
             margin-bottom: 24px;
             font-size: 14px;
             display: none;
@@ -150,12 +118,6 @@
             display: flex;
             justify-content: space-between;
             margin-top: 24px;
-            gap: 12px;
-        }
-
-        .post-actions button {
-            font-size: 13px;
-            padding: 6px 12px;
         }
 
         .toast {
@@ -165,7 +127,6 @@
             background: var(--text);
             color: var(--bg);
             padding: 12px 24px;
-            border-radius: 6px;
             font-size: 14px;
             display: none;
             animation: slideIn 0.3s ease-out;
@@ -175,26 +136,20 @@
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 16px;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>sharvesh's posts</h1>
         <div class="controls">
-            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            <button onclick="toggleTheme()">🌙</button>
             <button id="loginBtn">login</button>
             <button id="logoutBtn" style="display:none">logout</button>
         </div>
     </div>
 
     <input type="text" 
-           placeholder="search posts..." 
+           placeholder=">" 
            onkeyup="searchPosts(this.value)">
 
     <div id="postContainer" style="display:none">
@@ -204,18 +159,11 @@
             ## heading 2<br>
             **bold** or __bold__<br>
             *italic* or _italic_<br>
-            [link](url)<br>
-            ![image](url)<br>
-            `code`
-        </div>
-
-        <div class="drop-zone" id="dropZone">
-            Drop images here or click to upload
-            <input type="file" accept="image/*" id="fileInput" multiple>
+            [link](url)
         </div>
 
         <textarea id="postInput" 
-                  placeholder="what's on your mind? markdown supported, drag & drop images, paste links"></textarea>
+                  placeholder="what's on your mind?"></textarea>
 
         <div class="post-actions">
             <button onclick="toggleMarkdownHelp()">formatting help</button>
@@ -226,289 +174,201 @@
     <div id="timeline"></div>
     <div class="toast" id="toast"></div>
 
-<script>
-    let auth0Client = null;
-    let posts = [];
-    let isDark = localStorage.getItem('theme') === 'dark';
-    let storage = null;
+    <script>
+        let auth0Client = null;
+        let posts = [];
+        let isDark = localStorage.getItem('theme') === 'dark';
 
-    if (isDark) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️';
-    }
-
-    // Initialize markdown
-    marked.setOptions({
-        breaks: true,
-        gfm: true,
-        highlight: function(code, lang) {
-            if (hljs.getLanguage(lang)) {
-                return hljs.highlight(code, { language: lang }).value;
-            }
-            return code;
+        if (isDark) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️';
         }
-    });
 
-    async function initAuth0() {
-        try {
-            auth0Client = await auth0.createAuth0Client({
-                domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
-                clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        async function initAuth0() {
+            try {
+                auth0Client = await auth0.createAuth0Client({
+                    domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+                    clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
+                    authorizationParams: {
+                        redirect_uri: window.location.origin
+                    }
+                });
+
+                if (window.location.search.includes("code=")) {
+                    await auth0Client.handleRedirectCallback();
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
+                updateUI();
+            } catch (e) {
+                console.error("Auth0 init error:", e);
+            }
+        }
+
+        function initFirebase() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
+                authDomain: "twitterblog-9e7ea.firebaseapp.com",
+                databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "twitterblog-9e7ea",
+                storageBucket: "twitterblog-9e7ea.firebasestorage.app",
+                messagingSenderId: "564254133364",
+                appId: "1:564254133364:web:e89a32517db54517369521"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            loadPosts();
+        }
+
+        async function updateUI() {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
+            document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
+            document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
+        }
+
+        async function login() {
+            await auth0Client.loginWithRedirect({
                 authorizationParams: {
                     redirect_uri: window.location.origin
                 }
             });
-
-            if (window.location.search.includes("code=")) {
-                await auth0Client.handleRedirectCallback();
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
-            updateUI();
-        } catch (e) {
-            console.error("Auth0 init error:", e);
         }
-    }
 
-    function initFirebase() {
-        const firebaseConfig = {
-            apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
-            authDomain: "twitterblog-9e7ea.firebaseapp.com",
-            databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "twitterblog-9e7ea",
-            storageBucket: "twitterblog-9e7ea.firebasestorage.app",
-            messagingSenderId: "564254133364",
-            appId: "1:564254133364:web:e89a32517db54517369521"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        storage = firebase.storage();
-        loadPosts();
-        setupDropZone();
-    }
-
-    function setupDropZone() {
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const progressBar = document.getElementById('progressBar');
-        const uploadProgress = document.querySelector('.upload-progress');
-
-        dropZone.onclick = () => fileInput.click();
-
-        dropZone.ondragover = (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        };
-
-        dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
-
-        dropZone.ondrop = async (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            handleFiles(e.dataTransfer.files);
-        };
-
-        fileInput.onchange = () => handleFiles(fileInput.files);
-
-        async function handleFiles(files) {
-            for (const file of files) {
-                if (!file.type.startsWith('image/')) continue;
-
-                uploadProgress.style.display = 'block';
-                const ref = storage.ref(`images/${Date.now()}-${file.name}`);
-                
-                const upload = ref.put(file);
-                upload.on('state_changed', 
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        progressBar.style.width = progress + '%';
-                    },
-                    (error) => {
-                        showToast('Upload failed 😕');
-                        console.error(error);
-                    },
-                    async () => {
-                        const url = await ref.getDownloadURL();
-                        const textarea = document.getElementById('postInput');
-                        textarea.value += `\n![${file.name}](${url})\n`;
-                        progressBar.style.width = '0';
-                        uploadProgress.style.display = 'none';
-                        showToast('Image uploaded! 📸');
-                    }
-                );
-            }
-        }
-    }
-
-    async function updateUI() {
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
-        document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
-        document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
-    }
-
-    async function login() {
-        await auth0Client.loginWithRedirect({
-            authorizationParams: {
-                redirect_uri: window.location.origin
-            }
-        });
-    }
-
-    async function logout() {
-        await auth0Client.logout({
-            logoutParams: {
-                returnTo: window.location.origin
-            }
-        });
-    }
-
-    function processContent(content) {
-        // YouTube links to embeds
-        content = content.replace(
-            /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)(?:&\S*)?/g,
-            '<div class="youtube-embed"><iframe src="https://www.youtube.com/embed/$1" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe></div>'
-        );
-
-        content = content.replace(
-            /https?:\/\/(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]+)(?:\?\S*)?/g,
-            '<div class="youtube-embed"><iframe src="https://www.youtube.com/embed/$1" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe></div>'
-        );
-
-        // Twitter embeds
-        content = content.replace(
-            /https?:\/\/twitter\.com\/\w+\/status\/\d+/g,
-            '<blockquote class="twitter-tweet" data-dnt="true"><a href="$&"></a></blockquote>'
-        );
-
-        return marked.parse(content);
-    }
-
-    function searchPosts(query) {
-        query = query.toLowerCase();
-        const timeline = document.getElementById('timeline');
-        timeline.innerHTML = '';
-        
-        posts.filter(([key, post]) => 
-            post.content.toLowerCase().includes(query)
-        ).forEach(([key, post]) => {
-            renderPost(key, post, timeline);
-        });
-    }
-
-    async function publishPost() {
-        const input = document.getElementById('postInput');
-        const content = input.value.trim();
-        if (!content) return;
-
-        try {
-            const db = firebase.database();
-            await db.ref('posts').push({
-                content,
-                timestamp: Date.now(),
-                markdown: true
+        async function logout() {
+            await auth0Client.logout({
+                logoutParams: {
+                    returnTo: window.location.origin
+                }
             });
-            input.value = '';
-            showToast('Posted! 📝');
-        } catch (e) {
-            console.error("Post error:", e);
-            showToast('Error posting 😕');
-        }
-    }
-
-    async function deletePost(postId) {
-        if (!confirm('Delete this post?')) return;
-        
-        try {
-            const db = firebase.database();
-            await db.ref(`posts/${postId}`).remove();
-            showToast('Deleted! 🗑️');
-        } catch (e) {
-            console.error("Delete error:", e);
-            showToast('Error deleting 😕');
-        }
-    }
-
-    function sharePost(postId) {
-        const url = `${window.location.origin}#${postId}`;
-        navigator.clipboard.writeText(url);
-        showToast('Copied link! 🔗');
-    }
-
-    function renderPost(key, post, timeline) {
-        const date = new Date(post.timestamp);
-        const postEl = document.createElement('div');
-        postEl.className = 'post';
-        
-        const isAuthenticated = auth0Client?.isAuthenticated();
-        let content = processContent(post.content);
-
-        postEl.innerHTML = `
-            <div class="post-header">
-                <div class="timestamp">${date.toLocaleString()}</div>
-                ${isAuthenticated ? `
-                <div class="post-actions">
-                    <button onclick="sharePost('${key}')">share</button>
-                    <button onclick="deletePost('${key}')">delete</button>
-                </div>
-                ` : ''}
-            </div>
-            <div class="content">${content}</div>
-        `;
-
-        // Re-run Twitter embeddings
-        if (content.includes('twitter-tweet')) {
-            twttr?.widgets?.load(postEl);
         }
 
-        timeline.appendChild(postEl);
-    }
+        async function publishPost() {
+            const input = document.getElementById('postInput');
+            const content = input.value.trim();
+            if (!content) return;
 
-    function loadPosts() {
-        const db = firebase.database();
-        db.ref('posts').on('value', async (snapshot) => {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            if (!isAuthenticated) {
+                showToast('Please login to post');
+                return;
+            }
+
+            try {
+                const db = firebase.database();
+                await db.ref('posts').push({
+                    content,
+                    timestamp: Date.now(),
+                    markdown: true
+                });
+                input.value = '';
+                showToast('Posted! 📝');
+            } catch (e) {
+                console.error("Post error:", e);
+                showToast('Error posting 😕');
+            }
+        }
+
+        async function deletePost(postId) {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            if (!isAuthenticated) return;
+
+            if (!confirm('Delete this post?')) return;
+            
+            try {
+                const db = firebase.database();
+                await db.ref(`posts/${postId}`).remove();
+                showToast('Deleted! 🗑️');
+            } catch (e) {
+                console.error("Delete error:", e);
+                showToast('Error deleting 😕');
+            }
+        }
+
+        function searchPosts(query) {
+            query = query.toLowerCase();
             const timeline = document.getElementById('timeline');
             timeline.innerHTML = '';
             
-            const postsData = snapshot.val();
-            if (!postsData) return;
-
-            posts = Object.entries(postsData)
-                .sort(([,a], [,b]) => b.timestamp - a.timestamp);
-
-            posts.forEach(([key, post]) => {
+            posts.filter(([key, post]) => 
+                post.content.toLowerCase().includes(query)
+            ).forEach(([key, post]) => {
                 renderPost(key, post, timeline);
             });
-        });
-    }
+        }
 
-    function toggleTheme() {
-        isDark = !isDark;
-        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    }
+        async function renderPost(key, post, timeline) {
+            const date = new Date(post.timestamp);
+            const postEl = document.createElement('div');
+            postEl.className = 'post';
+            
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            
+            postEl.innerHTML = `
+                <div class="post-header">
+                    <div class="timestamp">${date.toLocaleString()}</div>
+                    ${isAuthenticated ? `
+                    <div class="post-actions">
+                        <button onclick="deletePost('${key}')">delete</button>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="content">${marked.parse(post.content)}</div>
+            `;
 
-    function toggleMarkdownHelp() {
-        const help = document.getElementById('markdownHelp');
-        help.style.display = help.style.display === 'none' ? 'block' : 'none';
-    }
+            timeline.appendChild(postEl);
+        }
 
-    function showToast(message) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 3000);
-    }
+        function loadPosts() {
+            const db = firebase.database();
+            db.ref('posts').on('value', async (snapshot) => {
+                const timeline = document.getElementById('timeline');
+                timeline.innerHTML = '';
+                
+                const postsData = snapshot.val();
+                if (!postsData) return;
 
-    // Initialize
-    document.getElementById('loginBtn').onclick = login;
-    document.getElementById('logoutBtn').onclick = logout;
+                posts = Object.entries(postsData)
+                    .sort(([,a], [,b]) => b.timestamp - a.timestamp);
 
-    window.onload = async () => {
-        await initAuth0();
-        initFirebase();
-    };
-</script>
+                posts.forEach(([key, post]) => {
+                    renderPost(key, post, timeline);
+                });
+            });
+        }
+
+        function toggleTheme() {
+            isDark = !isDark;
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        function toggleMarkdownHelp() {
+            const help = document.getElementById('markdownHelp');
+            help.style.display = help.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        // Initialize
+        document.getElementById('loginBtn').onclick = login;
+        document.getElementById('logoutBtn').onclick = logout;
+
+        window.onload = async () => {
+            await initAuth0();
+            initFirebase();
+        };
+    </script>
 </body>
 </html>
