@@ -148,9 +148,15 @@
 
         // Initialize Firebase
         function initFirebase() {
-            // TODO: Add your Firebase config here
             const firebaseConfig = {
-                // your config here
+                apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
+                authDomain: "twitterblog-9e7ea.firebaseapp.com",
+                databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "twitterblog-9e7ea",
+                storageBucket: "twitterblog-9e7ea.firebasestorage.app",
+                messagingSenderId: "564254133364",
+                appId: "1:564254133364:web:e89a32517db54517369521",
+                measurementId: "G-53QGCBH2FM"
             };
 
             firebase.initializeApp(firebaseConfig);
@@ -183,7 +189,7 @@
         async function logout() {
             auth0Client.logout({
                 logoutParams: {
-                    returnTo: 'https://sharvenium.github.io/sharvenium'
+                    returnTo: 'https://sharvenium.com'
                 }
             });
         }
@@ -203,16 +209,52 @@
                 timestamp: Date.now()
             };
 
-            // TODO: Add Firebase push here
-            // const db = firebase.database();
-            // await db.ref('posts').push(post);
+            const db = firebase.database();
+            await db.ref('posts').push(post);
 
             input.value = '';
             document.querySelector('.char-count').textContent = '0/280';
         }
 
         function loadPosts() {
-            // TODO: Add Firebase listener here
+            const db = firebase.database();
+            const postsRef = db.ref('posts');
+            
+            postsRef.on('value', (snapshot) => {
+                const timeline = document.getElementById('timeline');
+                timeline.innerHTML = '';
+                
+                const posts = snapshot.val();
+                if (!posts) return;
+
+                Object.entries(posts)
+                    .sort(([,a], [,b]) => b.timestamp - a.timestamp)
+                    .forEach(([key, post]) => {
+                        const postEl = document.createElement('div');
+                        postEl.className = 'post';
+                        const date = new Date(post.timestamp);
+                        const formattedDate = date.toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                        });
+                        
+                        postEl.innerHTML = `
+                            <div class="post-header">
+                                <div class="user-info">
+                                    <img src="${post.author.picture}" alt="profile">
+                                    <span class="post-author">@${post.author.name.split('@')[0]}</span>
+                                </div>
+                                <span class="timestamp">${formattedDate}</span>
+                            </div>
+                            <div class="content">${post.content}</div>
+                        `;
+                        
+                        timeline.appendChild(postEl);
+                    });
+            });
         }
 
         // Character counter
