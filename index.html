@@ -246,7 +246,16 @@ async function publishPost(final = false) {
     const isAuthenticated = await auth0Client.isAuthenticated();
     const user = isAuthenticated ? await auth0Client.getUser() : null;
 
-    if (!isAuthenticated || !user || user.email !== 'sharvenium@gmail.com') {
+    if (!isAuthenticated || !user) {
+        showToast('Please log in to post.');
+        return;
+    }
+
+    // log firebase token for debugging
+    const idToken = await firebase.auth().currentUser.getIdTokenResult();
+    console.log('firebase id token claims:', idToken.claims);
+
+    if (user.sub !== 'google-oauth2|103348245278740132039') {
         showToast('You are not authorized to post.');
         return;
     }
@@ -258,33 +267,21 @@ async function publishPost(final = false) {
 
     try {
         const db = firebase.database();
-        if (currentDraft && !final) {
-            await db.ref(`posts/${currentDraft}`).update({
-                content: content,
-                timestamp: Date.now()
-            });
-        } else {
-            const ref = await db.ref('posts').push({
-                content: content,
-                timestamp: Date.now(),
-                final: final
-            });
-            if (!final) {
-                currentDraft = ref.key;
-            } else {
-                currentDraft = null;
-            }
-        }
-
+        const ref = await db.ref('posts').push({
+            content: content,
+            timestamp: Date.now(),
+            final: final
+        });
         if (final) {
             input.value = '';
             showToast('Posted!');
         }
     } catch (e) {
-        console.error("Post error:", e);
+        console.error('Error posting:', e);
         showToast('Error posting.');
     }
 }
+
 
 async function deletePost(postId) {
     const isAuthenticated = await auth0Client.isAuthenticated();
