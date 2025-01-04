@@ -2,143 +2,234 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>posts by sharvesh</title>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+    <style>
+        /* keeping previous styles... */
+        :root {
+            --primary: #9B8AFB;
+            --bg: #FFFFFF;
+            --text: #1A1A1A;
+            --secondary: #F4F3FF;
+        }
 
+        body {
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.6;
+        }
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-M6KT5H5JPH"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() {dataLayer.push(arguments);}
-    gtag('js', new Date());
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
 
-    gtag('config', 'G-M6KT5H5JPH');
-  </script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>sharvesh</title>
-  <link rel="icon" type="catpfp" href="catpfp2.jpg">
+        .auth-buttons button {
+            background: var(--secondary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text);
+        }
 
-  <style>
-    /* Reset default margins and padding */
-    body,
-    h1,
-    h2,
-    ul,
-    li,
-    p {
-      margin: 0;
-      padding: 0;
-    }
+        .post-container {
+            margin-bottom: 40px;
+            display: none;
+            /* Hidden by default until authenticated */
+        }
 
-    /* Apply a font similar to what's used on Nat's site, like sans-serif */
-    body {
-      font-family: 'Arial', sans-serif;
-      line-height: 1.6;
-      color: #333;
-      /* Dark grey text color */
-      background-color: #fff;
-      /* White background */
-    }
+        textarea {
+            width: 100%;
+            height: 120px;
+            font-family: inherit;
+            font-size: 16px;
+            padding: 16px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: var(--secondary);
+            resize: none;
+            margin-bottom: 12px;
+        }
 
-    /* Center the container and apply a max-width */
-    .container {
-      margin: 0 auto;
-      max-width: 650px;
-      /* This width seems similar to Nat's site */
-      padding: 40px;
-      /* This adds space inside the container */
-    }
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    /* Style the headings */
-    h1,
-    h2 {
-      color: #111;
-      /* Slightly darker color for headings */
-      margin-bottom: 20px;
-      /* Add some space below headings */
-    }
+        .post-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
 
-    /* Style the paragraphs */
-    p {
-      margin-bottom: 20px;
-      /* Add some space below paragraphs */
-    }
+        .post {
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
 
-    /* Style the lists */
-    ul {
-      list-style-type: none;
-      /* Removes the default bullets */
-      line-height: 1.6;
-      /* Adjust line height for readability */
-    }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
 
-    /* Style the links */
-    a {
-      color: #8276C0;
-      /* Blue color for links */
-      text-decoration: none;
-      /* Removes the underline from links */
-    }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    a:hover {
-      text-decoration: underline;
-      /* Adds underline on hover for links */
-    }
-
-    /* Responsive design: Adjusts the width on smaller screens */
-    @media (max-width: 768px) {
-      .container {
-        width: 90%;
-        padding: 20px;
-      }
-    }
-  </style>
-
-
+        .user-info img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+    </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>sharvesh</h1>
-    <p><a href="https://en.wikipedia.org/wiki/Enlistment_Act_1970">conscript</a>. writing at <a href="https://www.sharvesh.com/">sharvesh.com</a> 
-    </p>
-    <h2>some projects</h2>
-    <ul>
-      <li>2023 - present: writing [redacted]</li>
-      <li>2020 - 2022: ran up fund 770,000% to $1m+ during zirp $1b+ volume. blew up together with 3ac/sbf. i love jpow.</li>
-      <li>2020 - 2021: made youtube <a href="https://www.youtube.com/sharveshyt"> videos</a></li>
-      <li>2019 - present: writing at <a href="https://www.sharvesh.com/">blog</a>, 195+ posts, 100k+ reads</li>
-      <li>2019 - 2020: reading 100 books arc</li>
+    <div class="header">
+        <h1>posts by sharvesh</h1>
+        <div class="auth-buttons">
+            <button id="loginBtn" onclick="login()">login with github</button>
+            <button id="logoutBtn" onclick="logout()" style="display: none;">logout</button>
+        </div>
+    </div>
 
-    </ul>
-    <br>
-    <h2>some posts</h2>
-    <ul>
-      <li>19th birthday post (soon)</a></li>
-      <li><a href="https://www.sharvesh.com/p/sharvenium-180">18th birthday post</a></li>
-      <li><a href="https://www.sharvesh.com/p/the-art-of-missing-the-pump">the art of missing the pump</a></li>
-      <li><a href="https://www.sharvesh.com/p/selling-a-100000x-for-a-2x-and-fumbling">'losing' a hundred million dollars</a></li>
-      <li><a href="https://www.sharvesh.com/p/the-patriarch-joseph-p-kennedy">the patriarch joseph p. kennedy</a></li>
-    </ul>
-    <br>
+    <div class="post-container" id="postContainer">
+        <textarea id="postInput" placeholder="what's on your mind?" maxlength="280"></textarea>
+        <div class="post-actions">
+            <div class="char-count">0/280</div>
+            <button class="post-button" onclick="publishPost()">post</button>
+        </div>
+    </div>
 
-    <h2>fav books</h2>
-    <ul>
-      <li>elon musk, steve jobs, kissinger by walter isaacson</li> 
-      <li>the years of lyndon johnson by robert caro</li> 
-      <li>napoleon by andrew roberts</li> 
-      <li>alexander hamilton, titan by ron chernow</li> 
-      <li>the patriarch by david nasaw</li> 
-      <li>the theodore roosevelt trilogy by edmund morris</li> 
-      <li>total recall by arnold schwarzenegger</li>
-      <li>the singapore story by lee kuan yew</li> 
-      <li>hpmor by eliezer yudkowsky</li>   
-    </ul>
+    <div id="timeline"></div>
 
-    <br>
+    <script>
+        let auth0Client = null;
+        let firebase = null;
+        let currentUser = null;
 
-    <h4>@sharvenium everywhere</h4>
-  </div>
+        // Initialize Auth0
+        async function initAuth0() {
+            auth0Client = await auth0.createAuth0Client({
+                domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+                clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
+                authorizationParams: {
+                    redirect_uri: 'https://sharvenium.github.io/sharvenium'
+                }
+            });
+
+            // Check if user is returning from auth0 login
+            if (location.search.includes('code=')) {
+                await auth0Client.handleRedirectCallback();
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            updateAuthUI();
+        }
+
+        // Initialize Firebase
+        function initFirebase() {
+            // TODO: Add your Firebase config here
+            const firebaseConfig = {
+                // your config here
+            };
+
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        async function updateAuthUI() {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+
+            if (isAuthenticated) {
+                currentUser = await auth0Client.getUser();
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'block';
+                document.getElementById('postContainer').style.display = 'block';
+                loadPosts();
+            } else {
+                document.getElementById('loginBtn').style.display = 'block';
+                document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('postContainer').style.display = 'none';
+            }
+        }
+
+        async function login() {
+            await auth0Client.loginWithRedirect({
+                authorizationParams: {
+                    redirect_uri: 'https://sharvenium.github.io/sharvenium'
+                }
+            });
+        }
+
+        async function logout() {
+            auth0Client.logout({
+                logoutParams: {
+                    returnTo: 'https://sharvenium.github.io/sharvenium'
+                }
+            });
+        }
+
+        async function publishPost() {
+            const input = document.getElementById('postInput');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const post = {
+                content,
+                author: {
+                    name: currentUser.name || currentUser.email,
+                    picture: currentUser.picture,
+                    sub: currentUser.sub
+                },
+                timestamp: Date.now()
+            };
+
+            // TODO: Add Firebase push here
+            // const db = firebase.database();
+            // await db.ref('posts').push(post);
+
+            input.value = '';
+            document.querySelector('.char-count').textContent = '0/280';
+        }
+
+        function loadPosts() {
+            // TODO: Add Firebase listener here
+        }
+
+        // Character counter
+        const textarea = document.getElementById('postInput');
+        textarea?.addEventListener('input', () => {
+            document.querySelector('.char-count').textContent =
+                `${textarea.value.length}/280`;
+        });
+
+        // Initialize everything
+        initAuth0();
+        // TODO: Uncomment after adding Firebase config
+        // initFirebase();
+    </script>
 </body>
 
 </html>
