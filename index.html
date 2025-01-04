@@ -8,20 +8,20 @@
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-    <!-- Markdown -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
-    <!-- Twitter & YouTube -->
-    <script async src="https://platform.twitter.com/widgets.js"></script>
     <style>
-        /* Previous styles remain the same */
-        [Previous CSS here, adding new styles:]
+        body {
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
 
-        /* Search */
-        .search-container {
-            margin-bottom: 20px;
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
         }
 
         .search-input {
@@ -29,113 +29,72 @@
             padding: 8px;
             font-family: inherit;
             font-size: inherit;
-            border: 1px solid var(--subtle);
-            background: var(--bg);
-            color: var(--text);
-            margin-bottom: 16px;
+            border: 1px solid #eee;
+            margin-bottom: 20px;
         }
 
-        /* Drop zone */
-        .drop-zone {
-            border: 2px dashed var(--subtle);
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 16px;
-            color: var(--accent);
-            transition: all 0.3s ease;
-        }
-
-        .drop-zone.drag-over {
-            border-color: var(--text);
-            background: var(--subtle);
-        }
-
-        .drop-zone input {
-            display: none;
-        }
-
-        /* Upload progress */
-        .upload-progress {
-            height: 2px;
-            background: var(--subtle);
-            margin-bottom: 16px;
-            display: none;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: var(--text);
-            width: 0;
-            transition: width 0.3s ease;
-        }
-
-        /* Embeds */
-        .twitter-tweet {
-            margin: 0 auto;
-        }
-
-        .youtube-embed {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            max-width: 100%;
-            margin: 16px 0;
-        }
-
-        .youtube-embed iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+        textarea {
             width: 100%;
-            height: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+            padding: 16px;
+            font-family: inherit;
+            font-size: inherit;
+            border: 1px solid #eee;
+            resize: vertical;
         }
 
-        /* Images */
-        .content img {
-            max-width: 100%;
-            height: auto;
+        button {
+            padding: 8px 16px;
+            cursor: pointer;
+            background: none;
+            border: 1px solid #eee;
+        }
+
+        .post {
+            padding: 24px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+        }
+
+        .timestamp {
+            color: #666;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #000;
+            color: #fff;
+            padding: 12px 24px;
             border-radius: 4px;
+            font-size: 0.9em;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>sharvesh's posts</h1>
-        <div class="controls">
-            <button onclick="toggleTheme()">🌙</button>
+        <div>
             <button id="loginBtn">login</button>
             <button id="logoutBtn" style="display:none">logout</button>
         </div>
     </div>
 
-    <div class="search-container">
-        <input type="text" class="search-input" placeholder="search posts..." onkeyup="searchPosts(this.value)">
-    </div>
+    <input type="text" class="search-input" placeholder="search posts..." onkeyup="searchPosts(this.value)">
 
     <div id="postContainer" style="display:none">
-        <div class="markdown-help" id="markdownHelp">
-            <strong>Markdown + More:</strong><br>
-            # heading 1<br>
-            **bold** or __bold__<br>
-            *italic* or _italic_<br>
-            ![image](url) or drag & drop images<br>
-            Tweet links auto-embed<br>
-            YouTube links auto-embed
-        </div>
-        
-        <div class="drop-zone" id="dropZone">
-            Drop images here or click to upload
-            <input type="file" accept="image/*" id="fileInput" multiple>
-        </div>
-        
-        <div class="upload-progress">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-
-        <textarea id="postInput" placeholder="what's on your mind? drag & drop images, paste tweet/youtube links"></textarea>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button onclick="toggleMarkdownHelp()">formatting help</button>
+        <textarea id="postInput" placeholder="what's on your mind?"></textarea>
+        <div style="display: flex; justify-content: flex-end;">
             <button onclick="publishPost()">post</button>
         </div>
     </div>
@@ -145,28 +104,29 @@
 
     <script>
         let auth0Client = null;
-        let isDark = localStorage.getItem('theme') === 'dark';
-        let storage = null;
         let posts = [];
 
-        if (isDark) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️';
+        async function initAuth0() {
+            try {
+                auth0Client = await auth0.createAuth0Client({
+                    domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+                    clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
+                    authorizationParams: {
+                        redirect_uri: window.location.origin
+                    }
+                });
+
+                if (window.location.search.includes("code=")) {
+                    await auth0Client.handleRedirectCallback();
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
+                updateUI();
+            } catch (e) {
+                console.error("Auth0 init error:", e);
+            }
         }
 
-        // Initialize markdown
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            highlight: function (code, lang) {
-                if (hljs.getLanguage(lang)) {
-                    return hljs.highlight(code, { language: lang }).value;
-                }
-                return code;
-            }
-        });
-
-        // Initialize Firebase Storage
         function initFirebase() {
             const firebaseConfig = {
                 apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
@@ -179,66 +139,32 @@
             };
 
             firebase.initializeApp(firebaseConfig);
-            storage = firebase.storage();
             loadPosts();
-            setupDropZone();
         }
 
-        // Image upload handling
-        function setupDropZone() {
-            const dropZone = document.getElementById('dropZone');
-            const fileInput = document.getElementById('fileInput');
-            const progressBar = document.getElementById('progressBar');
-            const uploadProgress = document.querySelector('.upload-progress');
+        async function updateUI() {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
+            document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
+            document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
+        }
 
-            dropZone.onclick = () => fileInput.click();
-
-            dropZone.ondragover = (e) => {
-                e.preventDefault();
-                dropZone.classList.add('drag-over');
-            };
-
-            dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
-
-            dropZone.ondrop = async (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('drag-over');
-                handleFiles(e.dataTransfer.files);
-            };
-
-            fileInput.onchange = () => handleFiles(fileInput.files);
-
-            async function handleFiles(files) {
-                for (const file of files) {
-                    if (!file.type.startsWith('image/')) continue;
-
-                    uploadProgress.style.display = 'block';
-                    const ref = storage.ref(`images/${Date.now()}-${file.name}`);
-                    
-                    const upload = ref.put(file);
-                    upload.on('state_changed', 
-                        (snapshot) => {
-                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            progressBar.style.width = progress + '%';
-                        },
-                        (error) => {
-                            showToast('Upload failed 😕');
-                            console.error(error);
-                        },
-                        async () => {
-                            const url = await ref.getDownloadURL();
-                            const textarea = document.getElementById('postInput');
-                            textarea.value += `\n![${file.name}](${url})\n`;
-                            progressBar.style.width = '0';
-                            uploadProgress.style.display = 'none';
-                            showToast('Image uploaded! 📸');
-                        }
-                    );
+        async function login() {
+            await auth0Client.loginWithRedirect({
+                authorizationParams: {
+                    redirect_uri: window.location.origin
                 }
-            }
+            });
         }
 
-        // Search functionality
+        async function logout() {
+            await auth0Client.logout({
+                logoutParams: {
+                    returnTo: window.location.origin
+                }
+            });
+        }
+
         function searchPosts(query) {
             query = query.toLowerCase();
             const timeline = document.getElementById('timeline');
@@ -251,27 +177,42 @@
             });
         }
 
-        // Embed handling
-        function processContent(content) {
-            // Convert YouTube links to embeds
-            content = content.replace(
-                /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)(?:&\S*)?/g,
-                '<div class="youtube-embed"><iframe src="https://www.youtube.com/embed/$1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>'
-            );
+        async function publishPost() {
+            const input = document.getElementById('postInput');
+            const content = input.value.trim();
+            if (!content) return;
 
-            // Convert YouTube short links
-            content = content.replace(
-                /https?:\/\/(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]+)(?:\?\S*)?/g,
-                '<div class="youtube-embed"><iframe src="https://www.youtube.com/embed/$1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>'
-            );
+            try {
+                const db = firebase.database();
+                await db.ref('posts').push({
+                    content,
+                    timestamp: Date.now()
+                });
+                input.value = '';
+                showToast('Posted! 📝');
+            } catch (e) {
+                console.error("Post error:", e);
+                showToast('Error posting 😕');
+            }
+        }
 
-            // Handle Twitter links (will be processed by widgets.js)
-            content = content.replace(
-                /https?:\/\/twitter\.com\/\w+\/status\/\d+/g,
-                '<blockquote class="twitter-tweet" data-dnt="true"><a href="$&"></a></blockquote>'
-            );
+        async function deletePost(postId) {
+            if (!confirm('Delete this post?')) return;
+            
+            try {
+                const db = firebase.database();
+                await db.ref(`posts/${postId}`).remove();
+                showToast('Deleted! 🗑️');
+            } catch (e) {
+                console.error("Delete error:", e);
+                showToast('Error deleting 😕');
+            }
+        }
 
-            return content;
+        function sharePost(postId) {
+            const url = `${window.location.origin}#${postId}`;
+            navigator.clipboard.writeText(url);
+            showToast('Copied link! 🔗');
         }
 
         function renderPost(key, post, timeline) {
@@ -279,31 +220,18 @@
             const postEl = document.createElement('div');
             postEl.className = 'post';
             
-            let content = processContent(post.content);
-            content = marked.parse(content);
-
             postEl.innerHTML = `
                 <div class="post-header">
                     <div class="timestamp">${date.toLocaleString()}</div>
                     ${auth0Client?.isAuthenticated() ? `
-                    <div class="post-actions">
+                    <div>
                         <button onclick="sharePost('${key}')">share</button>
                         <button onclick="deletePost('${key}')">delete</button>
                     </div>
                     ` : ''}
                 </div>
-                <div class="content">${content}</div>
+                <div class="content">${post.content}</div>
             `;
-
-            // Re-run Twitter widgets for embeds
-            if (content.includes('twitter-tweet')) {
-                twttr.widgets.load(postEl);
-            }
-
-            // Syntax highlighting
-            postEl.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightElement(block);
-            });
 
             timeline.appendChild(postEl);
         }
@@ -326,8 +254,12 @@
             });
         }
 
-        // [Previous functions remain the same: auth0, publishing, etc.]
-        // ... [Include all previous functions]
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
 
         // Initialize
         document.getElementById('loginBtn').onclick = login;
