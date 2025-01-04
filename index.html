@@ -4,16 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>sharvesh's posts</title>
+    <!-- core -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <!-- markdown -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
     <style>
+        :root {
+            --bg: #ffffff;
+            --text: #000000;
+            --subtle: #f0f0f0;
+            --accent: #555555;
+        }
+
+        [data-theme="dark"] {
+            --bg: #111111;
+            --text: #ffffff;
+            --subtle: #222222;
+            --accent: #999999;
+        }
+
         body {
             font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
             max-width: 650px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
+            background: var(--bg);
+            color: var(--text);
+            transition: all 0.3s ease;
         }
 
         .header {
@@ -23,47 +45,195 @@
             margin-bottom: 40px;
         }
 
-        .post {
-            padding: 20px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .timestamp {
-            color: #666;
-            font-size: 14px;
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
 
         button {
+            background: none;
+            border: none;
             padding: 8px 16px;
             cursor: pointer;
+            color: var(--text);
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 1;
+        }
+
+        .post-container {
+            margin-bottom: 40px;
         }
 
         textarea {
             width: 100%;
-            height: 100px;
+            height: 150px;
             margin-bottom: 10px;
-            padding: 10px;
+            padding: 16px;
+            font-family: inherit;
+            font-size: inherit;
+            border: 1px solid var(--subtle);
+            background: var(--bg);
+            color: var(--text);
+            resize: vertical;
+        }
+
+        .post {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--subtle);
+            position: relative;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+        }
+
+        .timestamp {
+            color: var(--accent);
+        }
+
+        .content {
+            line-height: 1.6;
+        }
+
+        /* Markdown styling */
+        .content img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .content pre {
+            background: var(--subtle);
+            padding: 16px;
+            overflow-x: auto;
+            border-radius: 4px;
+        }
+
+        .content code {
+            font-family: 'SF Mono', Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        .content p {
+            margin: 16px 0;
+        }
+
+        .content h1, .content h2, .content h3 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+
+        .content a {
+            color: var(--text);
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+        }
+
+        /* Post actions */
+        .post-actions {
+            position: absolute;
+            right: 0;
+            top: 24px;
+            display: none;
+        }
+
+        .post:hover .post-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Markdown helper */
+        .markdown-help {
+            background: var(--subtle);
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--text);
+            color: var(--bg);
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>sharvesh's posts</h1>
-        <div>
+        <div class="controls">
+            <button onclick="toggleTheme()">🌙</button>
             <button id="loginBtn">login</button>
             <button id="logoutBtn" style="display:none">logout</button>
         </div>
     </div>
 
     <div id="postContainer" style="display:none">
-        <textarea id="postInput" placeholder="what's on your mind?"></textarea>
-        <button onclick="publishPost()">post</button>
+        <div class="markdown-help" id="markdownHelp">
+            <strong>Markdown Guide:</strong><br>
+            # heading 1<br>
+            ## heading 2<br>
+            **bold** or __bold__<br>
+            *italic* or _italic_<br>
+            [link](url)<br>
+            ![image](url)<br>
+            `code`<br>
+            ```language<br>
+            code block<br>
+            ```
+        </div>
+        <textarea id="postInput" placeholder="what's on your mind? (markdown supported)"></textarea>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button onclick="toggleMarkdownHelp()">formatting help</button>
+            <button onclick="publishPost()">post</button>
+        </div>
     </div>
 
     <div id="timeline"></div>
+    <div class="toast" id="toast"></div>
 
     <script>
         let auth0Client = null;
+        let isDark = localStorage.getItem('theme') === 'dark';
+
+        if (isDark) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.querySelector('button').textContent = '☀️';
+        }
+
+        // Initialize markdown
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            highlight: function (code, lang) {
+                if (hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return code;
+            }
+        });
 
         async function initAuth0() {
             try {
@@ -75,7 +245,6 @@
                     }
                 });
 
-                // Check for the callback
                 if (window.location.search.includes("code=")) {
                     await auth0Client.handleRedirectCallback();
                     window.history.replaceState({}, document.title, window.location.pathname);
@@ -83,7 +252,7 @@
 
                 updateUI();
             } catch (e) {
-                console.error("Auth0 initialization error:", e);
+                console.error("Auth0 init error:", e);
             }
         }
 
@@ -103,38 +272,26 @@
         }
 
         async function updateUI() {
-            try {
-                const isAuthenticated = await auth0Client.isAuthenticated();
-                document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
-                document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
-                document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
-            } catch (e) {
-                console.error("UI update error:", e);
-            }
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
+            document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
+            document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
         }
 
         async function login() {
-            try {
-                await auth0Client.loginWithRedirect({
-                    authorizationParams: {
-                        redirect_uri: window.location.origin
-                    }
-                });
-            } catch (e) {
-                console.error("Login error:", e);
-            }
+            await auth0Client.loginWithRedirect({
+                authorizationParams: {
+                    redirect_uri: window.location.origin
+                }
+            });
         }
 
         async function logout() {
-            try {
-                await auth0Client.logout({
-                    logoutParams: {
-                        returnTo: window.location.origin
-                    }
-                });
-            } catch (e) {
-                console.error("Logout error:", e);
-            }
+            await auth0Client.logout({
+                logoutParams: {
+                    returnTo: window.location.origin
+                }
+            });
         }
 
         async function publishPost() {
@@ -146,22 +303,46 @@
                 const db = firebase.database();
                 await db.ref('posts').push({
                     content,
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    markdown: true
                 });
                 input.value = '';
+                showToast('Posted! 📝');
             } catch (e) {
                 console.error("Post error:", e);
+                showToast('Error posting 😕');
             }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('Delete this post?')) return;
+            
+            try {
+                const db = firebase.database();
+                await db.ref(`posts/${postId}`).remove();
+                showToast('Deleted! 🗑️');
+            } catch (e) {
+                console.error("Delete error:", e);
+                showToast('Error deleting 😕');
+            }
+        }
+
+        function sharePost(postId) {
+            const url = `${window.location.origin}#${postId}`;
+            navigator.clipboard.writeText(url);
+            showToast('Copied link! 🔗');
         }
 
         function loadPosts() {
             const db = firebase.database();
-            db.ref('posts').on('value', (snapshot) => {
+            db.ref('posts').on('value', async (snapshot) => {
                 const timeline = document.getElementById('timeline');
                 timeline.innerHTML = '';
                 
                 const posts = snapshot.val();
                 if (!posts) return;
+
+                const isAuthenticated = await auth0Client.isAuthenticated();
 
                 Object.entries(posts)
                     .sort(([,a], [,b]) => b.timestamp - a.timestamp)
@@ -170,19 +351,51 @@
                         const postEl = document.createElement('div');
                         postEl.className = 'post';
                         postEl.innerHTML = `
-                            <div class="timestamp">${date.toLocaleString()}</div>
-                            <div class="content">${post.content}</div>
+                            <div class="post-header">
+                                <div class="timestamp">${date.toLocaleString()}</div>
+                                ${isAuthenticated ? `
+                                <div class="post-actions">
+                                    <button onclick="sharePost('${key}')">share</button>
+                                    <button onclick="deletePost('${key}')">delete</button>
+                                </div>
+                                ` : ''}
+                            </div>
+                            <div class="content">${marked.parse(post.content)}</div>
                         `;
+
+                        // Handle code highlighting
+                        postEl.querySelectorAll('pre code').forEach((block) => {
+                            hljs.highlightElement(block);
+                        });
+
                         timeline.appendChild(postEl);
                     });
             });
         }
 
-        // Initialize everything
+        function toggleTheme() {
+            isDark = !isDark;
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        function toggleMarkdownHelp() {
+            const help = document.getElementById('markdownHelp');
+            help.style.display = help.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        // Initialize
         document.getElementById('loginBtn').onclick = login;
         document.getElementById('logoutBtn').onclick = logout;
 
-        // Wait for auth0 to load first, then initialize firebase
         window.onload = async () => {
             await initAuth0();
             initFirebase();
