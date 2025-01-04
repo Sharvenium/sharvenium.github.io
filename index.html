@@ -23,6 +23,8 @@
             --accent: #999999;
         }
 
+        * { box-sizing: border-box; }
+
         body {
             font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
             max-width: 650px;
@@ -47,7 +49,6 @@
             font-size: 24px;
             font-weight: 500;
             margin: 0;
-            font-family: 'Courier New', monospace;
         }
 
         .controls {
@@ -57,14 +58,13 @@
         }
 
         button {
-            padding: 8px 16px;
             background: none;
             border: none;
             color: var(--text);
             cursor: pointer;
             opacity: 0.7;
             transition: opacity 0.2s;
-            font-family: 'Courier New', monospace;
+            padding: 8px 16px;
         }
 
         button:hover {
@@ -74,7 +74,7 @@
         input, textarea {
             width: 100%;
             padding: 12px;
-            font-family: 'Courier New', monospace;
+            font-family: inherit;
             font-size: inherit;
             border: 1px solid var(--subtle);
             background: var(--bg);
@@ -98,35 +98,14 @@
             align-items: center;
             margin-bottom: 16px;
             font-size: 14px;
-            font-family: 'Courier New', monospace;
         }
 
         .timestamp {
             color: var(--accent);
-            font-family: 'Courier New', monospace;
-            letter-spacing: 0.5px;
         }
 
         .content {
             white-space: pre-wrap;
-            font-family: 'Courier New', monospace;
-            line-height: 1.5;
-            letter-spacing: 0.5px;
-        }
-
-        .markdown-help {
-            background: var(--subtle);
-            padding: 16px;
-            margin-bottom: 24px;
-            font-size: 14px;
-            display: none;
-            font-family: 'Courier New', monospace;
-        }
-
-        .post-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 24px;
         }
 
         .toast {
@@ -139,19 +118,6 @@
             font-size: 14px;
             display: none;
             animation: slideIn 0.3s ease-out;
-            font-family: 'Courier New', monospace;
-        }
-
-        .typing-indicator {
-            color: var(--accent);
-            font-family: 'Courier New', monospace;
-            padding: 24px 0;
-            border-bottom: 1px solid var(--subtle);
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            50% { opacity: 0; }
         }
 
         @keyframes slideIn {
@@ -171,26 +137,16 @@
     </div>
 
     <input type="text" 
-           placeholder=">" 
+           placeholder="search" 
            onkeyup="searchPosts(this.value)">
 
     <div id="postContainer" style="display:none">
-        <div class="markdown-help" id="markdownHelp">
-            <strong>markdown guide:</strong><br>
-            # heading 1<br>
-            ## heading 2<br>
-            **bold** or __bold__<br>
-            *italic* or _italic_<br>
-            [link](url)
-        </div>
-
         <textarea id="postInput" 
-                  placeholder="commence transmission..."
-                  oninput="handleTyping(this.value)"></textarea>
+                  placeholder="what's on your mind?"
+                  oninput="handleTyping(event)"></textarea>
 
         <div class="post-actions">
-            <button onclick="toggleMarkdownHelp()">formatting help</button>
-            <button onclick="publishPost(true)">end transmission</button>
+            <button onclick="publishPost(true)">post</button>
         </div>
     </div>
 
@@ -201,18 +157,15 @@
         let auth0Client = null;
         let posts = [];
         let isDark = localStorage.getItem('theme') === 'dark';
+        let currentDraft = null;
         let typingTimeout = null;
-        let lastContent = '';
 
         if (isDark) {
             document.documentElement.setAttribute('data-theme', 'dark');
             document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️';
         }
 
-        marked.setOptions({
-            breaks: true,
-            gfm: true
-        });
+        marked.setOptions({ breaks: true });
 
         async function initAuth0() {
             try {
@@ -273,20 +226,18 @@
             });
         }
 
-        async function handleTyping(content) {
+        async function handleTyping(event) {
             const isAuthenticated = await auth0Client.isAuthenticated();
             if (!isAuthenticated) return;
 
             clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => publishPost(false), 500);
-            lastContent = content;
+            typingTimeout = setTimeout(() => publishPost(false), 300);
         }
 
         async function publishPost(final = false) {
             const input = document.getElementById('postInput');
-            const content = input.value;
-            if (!final && content === lastContent) return;
-
+            const content = input.value.trim();
+            
             const isAuthenticated = await auth0Client.isAuthenticated();
             if (!isAuthenticated) {
                 showToast('Please login to post');
@@ -295,19 +246,31 @@
 
             try {
                 const db = firebase.database();
-                await db.ref('posts').push({
-                    content,
-                    timestamp: Date.now(),
-                    markdown: true,
-                    final: final
-                });
+                if (currentDraft && !final) {
+                    await db.ref(`posts/${currentDraft}`).update({
+                        content: content,
+                        timestamp: Date.now()
+                    });
+                } else {
+                    const ref = await db.ref('posts').push({
+                        content: content,
+                        timestamp: Date.now(),
+                        final: final
+                    });
+                    if (!final) {
+                        currentDraft = ref.key;
+                    } else {
+                        currentDraft = null;
+                    }
+                }
+
                 if (final) {
                     input.value = '';
-                    showToast('Transmission complete 📡');
+                    showToast('Posted!');
                 }
             } catch (e) {
                 console.error("Post error:", e);
-                showToast('Error in transmission 😕');
+                showToast('Error posting');
             }
         }
 
@@ -315,15 +278,15 @@
             const isAuthenticated = await auth0Client.isAuthenticated();
             if (!isAuthenticated) return;
 
-            if (!confirm('Delete this transmission?')) return;
+            if (!confirm('Delete this post?')) return;
             
             try {
                 const db = firebase.database();
                 await db.ref(`posts/${postId}`).remove();
-                showToast('Transmission deleted 🗑️');
+                showToast('Deleted!');
             } catch (e) {
                 console.error("Delete error:", e);
-                showToast('Error deleting transmission 😕');
+                showToast('Error deleting');
             }
         }
 
@@ -348,10 +311,10 @@
             
             postEl.innerHTML = `
                 <div class="post-header">
-                    <div class="timestamp">[${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}] TRANSMISSION #${key.slice(-5).toUpperCase()}</div>
+                    <div class="timestamp">${date.toLocaleString()}</div>
                     ${isAuthenticated ? `
                     <div class="post-actions">
-                        <button onclick="deletePost('${key}')">delete transmission</button>
+                        <button onclick="deletePost('${key}')">delete</button>
                     </div>
                     ` : ''}
                 </div>
@@ -384,11 +347,6 @@
             document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
             document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        }
-
-        function toggleMarkdownHelp() {
-            const help = document.getElementById('markdownHelp');
-            help.style.display = help.style.display === 'none' ? 'block' : 'none';
         }
 
         function showToast(message) {
