@@ -382,6 +382,9 @@ async function deletePost(postId) {
             await initAuth0();
             initFirebase();
         };
+        const user = await auth0Client.getUser();
+console.log(user.sub); // this logs your unique user id
+
     </script>
 </body>
 </html>
