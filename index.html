@@ -2,13 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.auth0.com https://*.firebaseapp.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.auth0.com https://cdn.auth0.com https://*.firebaseapp.com https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; frame-src https://*.auth0.com;">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>sharvesh's posts</title>
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
   <style>
     :root {
@@ -431,50 +429,25 @@
     }
 
     async function initAuth0() {
-  try {
-    auth0Client = await auth0.createAuth0Client({
-      domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
-      clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
-      authorizationParams: {
-        redirect_uri: window.location.origin,
-        audience: 'https://twitterblog-9e7ea.firebaseapp.com',  // your firebase project id
-        scope: 'email openid'
-      }
-    });
+      try {
+        auth0Client = await auth0.createAuth0Client({
+          domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+          clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
+          authorizationParams: {
+            redirect_uri: window.location.origin
+          }
+        });
 
-    if (window.location.search.includes("code=")) {
-      await auth0Client.handleRedirectCallback();
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-    
-    await updateUI();
-  } catch (e) {
-    console.error("auth0 init error:", e);
-    showToast('Auth initialization failed');
-  }
-}
-
-async function updateFirebaseAuth() {
-  try {
-    if (await auth0Client.isAuthenticated()) {
-      const token = await auth0Client.getTokenSilently();
-      const user = await auth0Client.getUser();
-      
-      if (user.email === "sharvenium@gmail.com") {
-        try {
-          // For now, just sign in anonymously 
-          await firebase.auth().signInAnonymously();
-          console.log("Signed in to Firebase");
-        } catch (error) {
-          console.error("Firebase auth error:", error);
-          showToast('Firebase auth failed');
+        if (window.location.search.includes("code=")) {
+          await auth0Client.handleRedirectCallback();
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
+        updateUI();
+      } catch (e) {
+        console.error("auth0 init error:", e);
       }
     }
-  } catch (error) {
-    console.error("Failed to update Firebase auth:", error);
-  }
-}
+
     function initFirebase() {
       const firebaseConfig = {
         apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
