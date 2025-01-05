@@ -14,6 +14,7 @@
             --text: #000000;
             --subtle: #eaeaea;
             --accent: #666666;
+            --primary: #8276C0;
         }
 
         [data-theme="dark"] {
@@ -28,12 +29,35 @@
         body {
             font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
             max-width: 650px;
-            margin: 0 auto;
+            margin: 70px auto 0;  /* Added top margin for live bar */
             padding: 20px;
             line-height: 1.6;
             background: var(--bg);
             color: var(--text);
             transition: all 0.3s ease;
+        }
+
+        .live-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 0, 0, 0.05);
+            color: var(--text);
+            text-align: center;
+            padding: 8px;
+            font-weight: 500;
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid var(--subtle);
+            display: none;
+            animation: pulse 2s infinite;
+            z-index: 1000;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
         }
 
         .header {
@@ -43,6 +67,39 @@
             margin-bottom: 32px;
             padding-bottom: 16px;
             border-bottom: 1px solid var(--subtle);
+        }
+
+        .bio {
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--subtle);
+        }
+
+        .bio a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .bio a:hover {
+            text-decoration: underline;
+        }
+
+        .bio ul {
+            list-style-type: none;
+            margin: 16px 0;
+        }
+
+        .bio li {
+            margin-bottom: 8px;
+        }
+
+        .bio-toggle {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
         }
 
         h1 {
@@ -131,12 +188,33 @@
     </style>
 </head>
 <body>
+    <div class="live-bar" id="liveBar">
+        🔴 SHARVESH IS WRITING RIGHT NOW...
+    </div>
+
     <div class="header">
         <h1>sharvesh's posts</h1>
         <div class="controls">
             <button onclick="toggleTheme()">🌙</button>
             <button id="loginBtn">login</button>
             <button id="logoutBtn" style="display:none">logout</button>
+        </div>
+    </div>
+
+    <div class="bio">
+        <div class="bio-preview">
+            <p>conscript. writing at <a href="https://www.sharvesh.com/">sharvesh.com</a></p>
+            <button onclick="toggleBio()" class="bio-toggle">more ▼</button>
+        </div>
+        <div class="bio-full" style="display:none">
+            <ul>
+                <li>2023 - present: writing [redacted]</li>
+                <li>2020 - 2022: ran up fund 770,000% to $1m+ during zirp $1b+ volume</li>
+                <li>2020 - 2021: made youtube videos</li>
+                <li>2019 - present: writing at blog, 195+ posts, 100k+ reads</li>
+                <li>2019 - 2020: reading 100 books arc</li>
+            </ul>
+            <button onclick="toggleBio()" class="bio-toggle">less ▲</button>
         </div>
     </div>
 
@@ -163,6 +241,7 @@
         let isDark = localStorage.getItem('theme') === 'dark';
         let currentDraft = null;
         let typingTimeout = null;
+        let liveIndicatorTimeout = null;
 
         if (isDark) {
             document.documentElement.setAttribute('data-theme', 'dark');
@@ -171,6 +250,65 @@
 
         marked.setOptions({ breaks: true });
 
+        function toggleBio() {
+            const preview = document.querySelector('.bio-preview');
+            const full = document.querySelector('.bio-full');
+            if (full.style.display === 'none') {
+                preview.querySelector('.bio-toggle').style.display = 'none';
+                full.style.display = 'block';
+            } else {
+                preview.querySelector('.bio-toggle').style.display = 'block';
+                full.style.display = 'none';
+            }
+        }
+
+        function showLiveIndicator(show) {
+            const liveBar = document.getElementById('liveBar');
+            liveBar.style.display = show ? 'block' : 'none';
+            
+            // If hiding, also adjust body margin
+            document.body.style.marginTop = show ? '70px' : '20px';
+        }
+
+        async function handleTyping(event) {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            if (!isAuthenticated) return;
+
+            // Show live indicator
+            showLiveIndicator(true);
+            
+            // Clear previous timeouts
+            clearTimeout(typingTimeout);
+            clearTimeout(liveIndicatorTimeout);
+            
+            // Set new timeouts
+            typingTimeout = setTimeout(async () => {
+                const content = event.target.value.trim();
+                if (!content) return;
+
+                const db = firebase.database();
+                if (!currentDraft) {
+                    const ref = await db.ref('posts').push({
+                        content: content,
+                        timestamp: Date.now(),
+                        final: false
+                    });
+                    currentDraft = ref.key;
+                } else {
+                    await db.ref(`posts/${currentDraft}`).update({
+                        content: content,
+                        timestamp: Date.now()
+                    });
+                }
+            }, 300);
+
+            // Hide live indicator after 3 seconds of no typing
+            liveIndicatorTimeout = setTimeout(() => {
+                showLiveIndicator(false);
+            }, 3000);
+        }
+
+        // Rest of your existing functions (initAuth0, initFirebase, etc.) remain the same
         async function initAuth0() {
     try {
         auth0Client = await auth0.createAuth0Client({
@@ -181,33 +319,33 @@
             }
         });
 
-                if (window.location.search.includes("code=")) {
-                    await auth0Client.handleRedirectCallback();
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-
-                updateUI();
-            } catch (e) {
-                console.error("Auth0 init error:", e);
-            }
+        if (window.location.search.includes("code=")) {
+            await auth0Client.handleRedirectCallback();
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        function initFirebase() {
-            const firebaseConfig = {
-                apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
-                authDomain: "twitterblog-9e7ea.firebaseapp.com",
-                databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
-                projectId: "twitterblog-9e7ea",
-                storageBucket: "twitterblog-9e7ea.firebasestorage.app",
-                messagingSenderId: "564254133364",
-                appId: "1:564254133364:web:e89a32517db54517369521"
-            };
+        updateUI();
+    } catch (e) {
+        console.error("Auth0 init error:", e);
+    }
+}
 
-            firebase.initializeApp(firebaseConfig);
-            loadPosts();
-        }
+function initFirebase() {
+    const firebaseConfig = {
+        apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
+        authDomain: "twitterblog-9e7ea.firebaseapp.com",
+        databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "twitterblog-9e7ea",
+        storageBucket: "twitterblog-9e7ea.firebasestorage.app",
+        messagingSenderId: "564254133364",
+        appId: "1:564254133364:web:e89a32517db54517369521"
+    };
 
-        async function updateUI() {
+    firebase.initializeApp(firebaseConfig);
+    loadPosts();
+}
+
+async function updateUI() {
     try {
         const isAuthenticated = await auth0Client.isAuthenticated();
         if (isAuthenticated) {
@@ -219,11 +357,9 @@
                 document.getElementById('postContainer').style.display = 'block';
                 return;
             }
-            // If not sharvenium, log them out
             await logout();
             showToast('Access denied');
         }
-        // Default state (not logged in or wrong user)
         document.getElementById('loginBtn').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'none';
         document.getElementById('postContainer').style.display = 'none';
@@ -231,31 +367,24 @@
         console.error('UpdateUI error:', e);
     }
 }
-        async function login() {
-            await auth0Client.loginWithRedirect({
-                authorizationParams: {
-                    redirect_uri: window.location.origin
-                }
-            });
+
+async function login() {
+    await auth0Client.loginWithRedirect({
+        authorizationParams: {
+            redirect_uri: window.location.origin
         }
+    });
+}
 
-        async function logout() {
-            await auth0Client.logout({
-                logoutParams: {
-                    returnTo: window.location.origin
-                }
-            });
+async function logout() {
+    await auth0Client.logout({
+        logoutParams: {
+            returnTo: window.location.origin
         }
+    });
+}
 
-        async function handleTyping(event) {
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            if (!isAuthenticated) return;
-
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => publishPost(false), 300);
-        }
-
-        async function publishPost(final = false) {
+async function publishPost(final = false) {
     try {
         const isAuthenticated = await auth0Client.isAuthenticated();
         const user = await auth0Client.getUser();
@@ -291,6 +420,7 @@
         if (final) {
             input.value = '';
             showToast('Posted!');
+            showLiveIndicator(false);
         }
     } catch (e) {
         console.error("Post error:", e);
@@ -319,75 +449,74 @@ async function deletePost(postId) {
     }
 }
 
-        function searchPosts(query) {
-            query = query.toLowerCase();
-            const timeline = document.getElementById('timeline');
-            timeline.innerHTML = '';
-            
-            posts.filter(([key, post]) => 
-                post.content.toLowerCase().includes(query)
-            ).forEach(([key, post]) => {
-                renderPost(key, post, timeline);
-            });
-        }
+function searchPosts(query) {
+    query = query.toLowerCase();
+    const timeline = document.getElementById('timeline');
+    timeline.innerHTML = '';
+    
+    posts.filter(([key, post]) => 
+        post.content.toLowerCase().includes(query)
+    ).forEach(([key, post]) => {
+        renderPost(key, post, timeline);
+    });
+}
 
-        async function renderPost(key, post, timeline) {
-            const date = new Date(post.timestamp);
-            const postEl = document.createElement('div');
-            postEl.className = 'post';
-            
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            
-            postEl.innerHTML = `
-                <div class="post-header">
-                    <div class="timestamp">${date.toLocaleString()}</div>
-                    ${isAuthenticated ? `
-                    <div class="post-actions">
-                        <button onclick="deletePost('${key}')">delete</button>
-                    </div>
-                    ` : ''}
-                </div>
-                <div class="content">${marked.parse(post.content)}</div>
-            `;
+async function renderPost(key, post, timeline) {
+    const date = new Date(post.timestamp);
+    const postEl = document.createElement('div');
+    postEl.className = 'post';
+    
+    const isAuthenticated = await auth0Client.isAuthenticated();
+    
+    postEl.innerHTML = `
+        <div class="post-header">
+            <div class="timestamp">${date.toLocaleString()}</div>
+            ${isAuthenticated ? `
+            <div class="post-actions">
+                <button onclick="deletePost('${key}')">delete</button>
+            </div>
+            ` : ''}
+        </div>
+        <div class="content">${marked.parse(post.content)}</div>
+    `;
 
-            timeline.appendChild(postEl);
-        }
+    timeline.appendChild(postEl);
+}
 
-        function loadPosts() {
-            const db = firebase.database();
-            db.ref('posts').on('value', async (snapshot) => {
-                const timeline = document.getElementById('timeline');
-                timeline.innerHTML = '';
-                
-                const postsData = snapshot.val();
-                if (!postsData) return;
+function loadPosts() {
+    const db = firebase.database();
+    db.ref('posts').on('value', async (snapshot) => {
+        const timeline = document.getElementById('timeline');
+        timeline.innerHTML = '';
+        
+        const postsData = snapshot.val();
+        if (!postsData) return;
 
-                posts = Object.entries(postsData)
-                    .sort(([,a], [,b]) => b.timestamp - a.timestamp);
+        posts = Object.entries(postsData)
+            .sort(([,a], [,b]) => b.timestamp - a.timestamp);
 
-                posts.forEach(([key, post]) => {
-                    renderPost(key, post, timeline);
-                });
-            });
-        }
+        posts.forEach(([key, post]) => {
+            renderPost(key, post, timeline);
+        });
+    });
+}
 
-        function toggleTheme() {
-            isDark = !isDark;
-            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-            document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        }
+function toggleTheme() {
+    isDark = !isDark;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 3000);
-        }
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 3000);
+}
 
-        // Initialize
-        document.getElementById('loginBtn').onclick = login;
-        document.getElementById('logoutBtn').onclick = logout;
+document.getElementById('loginBtn').onclick = login;
+document.getElementById('logoutBtn').onclick = logout;
 
         window.onload = async () => {
             await initAuth0();
