@@ -16,16 +16,15 @@
       --accent: #666666;
       --primary: #8276c0;
     }
-
     [data-theme="dark"] {
       --bg: #111111;
       --text: #ffffff;
       --subtle: #222222;
       --accent: #999999;
     }
-
-    * { box-sizing: border-box; }
-
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
       max-width: 650px;
@@ -36,7 +35,131 @@
       color: var(--text);
       transition: all 0.3s ease;
     }
-
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--subtle);
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .presence {
+      font-size: 14px;
+      color: var(--accent);
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    button {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+      padding: 6px 8px;
+    }
+    button:hover {
+      opacity: 1;
+    }
+    #searchInput {
+      border: 1px solid var(--subtle);
+      padding: 6px 8px;
+      font-size: 14px;
+      display: none;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .stats-row {
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: var(--accent);
+    }
+    .bio {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--subtle);
+    }
+    .bio a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .bio a:hover {
+      text-decoration: underline;
+    }
+    .bio ul {
+      list-style-type: none;
+      margin: 16px 0;
+      padding: 0;
+    }
+    .bio li {
+      margin-bottom: 8px;
+    }
+    .bio-toggle {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 0;
+      font-size: 14px;
+    }
+    #postContainer {
+      margin-top: 24px;
+      display: none;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      resize: vertical;
+      padding: 12px;
+      font-family: inherit;
+      font-size: inherit;
+      border: 1px solid var(--subtle);
+      background: var(--bg);
+      color: var(--text);
+    }
+    .post-actions {
+      margin-top: 8px;
+    }
+    .post {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--subtle);
+    }
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .timestamp {
+      color: var(--accent);
+    }
+    .content {
+      white-space: pre-wrap;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--text);
+      color: var(--bg);
+      padding: 12px 24px;
+      font-size: 14px;
+      display: none;
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
     .live-bar {
       position: fixed;
       top: 0;
@@ -53,144 +176,16 @@
       animation: pulse 2s infinite;
       z-index: 1000;
     }
-
     @keyframes pulse {
       0% { opacity: 0.8; }
       50% { opacity: 1; }
       100% { opacity: 0.8; }
     }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--subtle);
-    }
-
-    .bio {
-      margin-bottom: 32px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--subtle);
-    }
-
-    .bio a {
-      color: var(--primary);
-      text-decoration: none;
-    }
-
-    .bio a:hover {
-      text-decoration: underline;
-    }
-
-    .bio ul {
-      list-style-type: none;
-      margin: 16px 0;
-    }
-
-    .bio li {
-      margin-bottom: 8px;
-    }
-
-    .bio-toggle {
-      background: none;
-      border: none;
-      color: var(--accent);
-      cursor: pointer;
-      padding: 0;
-      font-size: 14px;
-    }
-
-    h1 {
-      font-size: 24px;
-      font-weight: 500;
-      margin: 0;
-    }
-
-    .controls {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-    }
-
-    button {
-      background: none;
-      border: none;
-      color: var(--text);
-      cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-      padding: 8px 16px;
-    }
-
-    button:hover {
-      opacity: 1;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      font-family: inherit;
-      font-size: inherit;
-      border: 1px solid var(--subtle);
-      background: var(--bg);
-      color: var(--text);
-      margin-bottom: 24px;
-    }
-
-    textarea {
-      height: 150px;
-      resize: vertical;
-    }
-
-    .post {
-      padding: 24px 0;
-      border-bottom: 1px solid var(--subtle);
-    }
-
-    .post-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      font-size: 14px;
-    }
-
-    .timestamp {
-      color: var(--accent);
-    }
-
-    .content {
-      white-space: pre-wrap;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--text);
-      color: var(--bg);
-      padding: 12px 24px;
-      font-size: 14px;
-      display: none;
-      animation: slideIn 0.3s ease-out;
-    }
-
-    @keyframes slideIn {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    /* presence + draft preview styling (optional) */
-    #presenceIndicator {
-      margin: 16px 0;
-      color: var(--accent);
-    }
     #liveDraftPreview {
-      margin: 16px 0;
+      margin-top: 16px;
       padding: 10px;
       border: 1px dashed var(--subtle);
+      min-height: 40px;
     }
   </style>
 </head>
@@ -199,15 +194,22 @@
     🔴 sharvesh is writing right now...
   </div>
 
+  <!-- header -->
   <div class="header">
-    <h1>sharvesh's posts</h1>
+    <div class="header-left">
+      <h1>sharvesh's posts</h1>
+      <div class="presence" id="presenceIndicator"></div>
+    </div>
     <div class="controls">
+      <button onclick="toggleSearch()">🔍</button>
+      <input type="text" id="searchInput" placeholder="search" onkeyup="searchPosts(this.value)">
       <button onclick="toggleTheme()">🌙</button>
       <button id="loginBtn">login</button>
       <button id="logoutBtn" style="display:none">logout</button>
     </div>
   </div>
 
+  <!-- small bio -->
   <div class="bio">
     <div class="bio-preview">
       <p>conscript. writing at <a href="https://www.sharvesh.com/">sharvesh.com</a></p>
@@ -225,19 +227,21 @@
     </div>
   </div>
 
-  <input type="text" placeholder="search" onkeyup="searchPosts(this.value)">
+  <!-- stats row -->
+  <div class="stats-row">
+    <span id="totalPosts"></span> | <span id="todayPosts"></span>
+  </div>
 
-  <div id="postContainer" style="display:none">
+  <!-- post container -->
+  <div id="postContainer">
     <textarea id="postInput" placeholder="what's on your mind?" oninput="handleTyping(event)"></textarea>
     <div class="post-actions">
       <button onclick="publishPost(true)">post</button>
     </div>
+    <div id="liveDraftPreview"></div>
   </div>
 
-  <!-- presence display + draft preview -->
-  <div id="presenceIndicator"></div>
-  <div id="liveDraftPreview"></div>
-
+  <!-- timeline -->
   <div id="timeline"></div>
   <div class="toast" id="toast"></div>
 
@@ -255,6 +259,13 @@
     }
 
     marked.setOptions({ breaks: true });
+
+    // toggle search input
+    function toggleSearch() {
+      const input = document.getElementById('searchInput');
+      input.style.display = (input.style.display === 'none' || !input.style.display) ? 'inline-block' : 'none';
+      if (input.style.display !== 'none') input.focus();
+    }
 
     function toggleBio() {
       const preview = document.querySelector('.bio-preview');
@@ -274,7 +285,7 @@
       document.body.style.marginTop = show ? '70px' : '20px';
     }
 
-    // track presence
+    // presence
     function initPresence() {
       const db = firebase.database();
       const userRef = db.ref('presence/sharvesh');
@@ -289,17 +300,14 @@
 
       db.ref('.info/connected').on('value', snap => {
         if (!snap.val()) {
-          // if not connected, set offline
           userRef.set(offlineState);
           return;
         }
-        // if connected, set up onDisconnect
         userRef.onDisconnect().set(offlineState).then(() => {
           userRef.set(onlineState);
         });
       });
 
-      // watch for changes
       userRef.on('value', snapshot => {
         const val = snapshot.val();
         if (!val) return;
@@ -307,14 +315,13 @@
         const isOnline = val.state === 'online';
         const lastChanged = new Date(val.lastChanged).toLocaleString();
         if (isOnline) {
-          presenceEl.textContent = 'sharvesh is online rn';
+          presenceEl.textContent = 'online rn';
         } else {
-          presenceEl.textContent = `sharvesh was last seen at ${lastChanged}`;
+          presenceEl.textContent = `was last seen at ${lastChanged}`;
         }
       });
     }
 
-    // watchers see partial draft text
     function initDraftViewer() {
       const db = firebase.database();
       db.ref('drafts/sharvesh').on('value', snapshot => {
@@ -336,38 +343,23 @@
       clearTimeout(liveIndicatorTimeout);
 
       const db = firebase.database();
-      // set isWriting so others see the bar
-      db.ref('typingStatus').set({
-        isWriting: true,
-        timestamp: Date.now()
-      });
+      db.ref('typingStatus').set({ isWriting: true, timestamp: Date.now() });
 
       const newContent = event.target.value;
+      db.ref('drafts/sharvesh').set({ content: newContent, timestamp: Date.now() });
 
-      // push partial content for watchers
-      db.ref('drafts/sharvesh').set({
-        content: newContent,
-        timestamp: Date.now()
-      });
-
-      // wait 1s after user stops to finalize isWriting
       typingTimeout = setTimeout(async () => {
         const content = newContent.trim();
         if (!content) {
-          // if empty, remove the draft
           db.ref('drafts/sharvesh').remove();
           if (currentDraft) {
             await db.ref(`posts/${currentDraft}`).remove();
             currentDraft = null;
           }
-          db.ref('typingStatus').set({
-            isWriting: false,
-            timestamp: Date.now()
-          });
+          db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
           return;
         }
 
-        // your existing "store as a draft" logic
         if (!currentDraft) {
           const ref = await db.ref('posts').push({
             content,
@@ -381,23 +373,14 @@
             timestamp: Date.now()
           });
         }
-        // set isWriting false after we store
-        db.ref('typingStatus').set({
-          isWriting: false,
-          timestamp: Date.now()
-        });
+        db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
       }, 1000);
 
-      // extend the "typing" bar to ~5s so it doesn't flicker
       liveIndicatorTimeout = setTimeout(() => {
-        db.ref('typingStatus').set({
-          isWriting: false,
-          timestamp: Date.now()
-        });
+        db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
       }, 5000);
     }
 
-    // watch for changes in typingStatus
     function setupTypingListener() {
       const db = firebase.database();
       db.ref('typingStatus').on('value', snapshot => {
@@ -494,9 +477,7 @@
         if (!content) return;
 
         const db = firebase.database();
-
         if (final) {
-          // remove the draft if present
           db.ref('drafts/sharvesh').remove();
           if (currentDraft) {
             await db.ref(`posts/${currentDraft}`).remove();
@@ -575,16 +556,31 @@
         const timeline = document.getElementById('timeline');
         timeline.innerHTML = '';
         const postsData = snapshot.val();
-        if (!postsData) return;
+        if (!postsData) {
+          updateStats(0, 0);
+          return;
+        }
 
         posts = Object.entries(postsData)
           .filter(([,post]) => !post.isDraft)
           .sort(([,a], [,b]) => b.timestamp - a.timestamp);
 
+        // update stats
+        updateStatsCount();
+
         posts.forEach(([key, post]) => {
           renderPost(key, post, timeline);
         });
       });
+    }
+
+    // update the stats row
+    function updateStatsCount() {
+      const total = posts.length;
+      const todayStr = new Date().toDateString();
+      const todayCount = posts.filter(([, p]) => new Date(p.timestamp).toDateString() === todayStr).length;
+      document.getElementById('totalPosts').textContent = 'total posts: ' + total;
+      document.getElementById('todayPosts').textContent = 'posts today: ' + todayCount;
     }
 
     function toggleTheme() {
