@@ -1,381 +1,434 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sharvesh's posts</title>
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
-    <style>
-        :root {
-            --bg: #ffffff;
-            --text: #000000;
-            --subtle: #eaeaea;
-            --accent: #666666;
-            --primary: #8276C0;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>sharvesh's posts</title>
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000000;
+      --subtle: #eaeaea;
+      --accent: #666666;
+      --primary: #8276c0;
+    }
 
-        [data-theme="dark"] {
-            --bg: #111111;
-            --text: #ffffff;
-            --subtle: #222222;
-            --accent: #999999;
-        }
+    [data-theme="dark"] {
+      --bg: #111111;
+      --text: #ffffff;
+      --subtle: #222222;
+      --accent: #999999;
+    }
 
-        * { box-sizing: border-box; }
+    * { box-sizing: border-box; }
 
-        body {
-            font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
-            max-width: 650px;
-            margin: 70px auto 0;  /* Added top margin for live bar */
-            padding: 20px;
-            line-height: 1.6;
-            background: var(--bg);
-            color: var(--text);
-            transition: all 0.3s ease;
-        }
+    body {
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
+      max-width: 650px;
+      margin: 70px auto 0;
+      padding: 20px;
+      line-height: 1.6;
+      background: var(--bg);
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
 
-        .live-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(255, 0, 0, 0.05);
-            color: var(--text);
-            text-align: center;
-            padding: 8px;
-            font-weight: 500;
-            backdrop-filter: blur(5px);
-            border-bottom: 1px solid var(--subtle);
-            display: none;
-            animation: pulse 2s infinite;
-            z-index: 1000;
-        }
+    .live-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255, 0, 0, 0.05);
+      color: var(--text);
+      text-align: center;
+      padding: 8px;
+      font-weight: 500;
+      backdrop-filter: blur(5px);
+      border-bottom: 1px solid var(--subtle);
+      display: none;
+      animation: pulse 2s infinite;
+      z-index: 1000;
+    }
 
-        @keyframes pulse {
-            0% { opacity: 0.8; }
-            50% { opacity: 1; }
-            100% { opacity: 0.8; }
-        }
+    @keyframes pulse {
+      0% { opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { opacity: 0.8; }
+    }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--subtle);
-        }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--subtle);
+    }
 
-        .bio {
-            margin-bottom: 32px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--subtle);
-        }
+    .bio {
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--subtle);
+    }
 
-        .bio a {
-            color: var(--primary);
-            text-decoration: none;
-        }
+    .bio a {
+      color: var(--primary);
+      text-decoration: none;
+    }
 
-        .bio a:hover {
-            text-decoration: underline;
-        }
+    .bio a:hover {
+      text-decoration: underline;
+    }
 
-        .bio ul {
-            list-style-type: none;
-            margin: 16px 0;
-        }
+    .bio ul {
+      list-style-type: none;
+      margin: 16px 0;
+    }
 
-        .bio li {
-            margin-bottom: 8px;
-        }
+    .bio li {
+      margin-bottom: 8px;
+    }
 
-        .bio-toggle {
-            background: none;
-            border: none;
-            color: var(--accent);
-            cursor: pointer;
-            padding: 0;
-            font-size: 14px;
-        }
+    .bio-toggle {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 0;
+      font-size: 14px;
+    }
 
-        h1 {
-            font-size: 24px;
-            font-weight: 500;
-            margin: 0;
-        }
+    h1 {
+      font-size: 24px;
+      font-weight: 500;
+      margin: 0;
+    }
 
-        .controls {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
+    .controls {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
 
+    button {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+      padding: 8px 16px;
+    }
 
-        button {
-            background: none;
-            border: none;
-            color: var(--text);
-            cursor: pointer;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-            padding: 8px 16px;
-        }
+    button:hover {
+      opacity: 1;
+    }
 
-        button:hover {
-            opacity: 1;
-        }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      font-family: inherit;
+      font-size: inherit;
+      border: 1px solid var(--subtle);
+      background: var(--bg);
+      color: var(--text);
+      margin-bottom: 24px;
+    }
 
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            font-family: inherit;
-            font-size: inherit;
-            border: 1px solid var(--subtle);
-            background: var(--bg);
-            color: var(--text);
-            margin-bottom: 24px;
-        }
+    textarea {
+      height: 150px;
+      resize: vertical;
+    }
 
-        textarea {
-            height: 150px;
-            resize: vertical;
-        }
+    .post {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--subtle);
+    }
 
-        .post {
-            padding: 24px 0;
-            border-bottom: 1px solid var(--subtle);
-        }
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
 
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
+    .timestamp {
+      color: var(--accent);
+    }
 
-        .timestamp {
-            color: var(--accent);
-        }
+    .content {
+      white-space: pre-wrap;
+    }
 
-        .content {
-            white-space: pre-wrap;
-        }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--text);
+      color: var(--bg);
+      padding: 12px 24px;
+      font-size: 14px;
+      display: none;
+      animation: slideIn 0.3s ease-out;
+    }
 
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--text);
-            color: var(--bg);
-            padding: 12px 24px;
-            font-size: 14px;
-            display: none;
-            animation: slideIn 0.3s ease-out;
-        }
+    @keyframes slideIn {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
 
-        @keyframes slideIn {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-    </style>
+    /* presence + draft preview styling (optional) */
+    #presenceIndicator {
+      margin: 16px 0;
+      color: var(--accent);
+    }
+    #liveDraftPreview {
+      margin: 16px 0;
+      padding: 10px;
+      border: 1px dashed var(--subtle);
+    }
+  </style>
 </head>
 <body>
-    <div class="live-bar" id="liveBar">
-        🔴 SHARVESH IS WRITING RIGHT NOW...
+  <div class="live-bar" id="liveBar">
+    🔴 sharvesh is writing right now...
+  </div>
+
+  <div class="header">
+    <h1>sharvesh's posts</h1>
+    <div class="controls">
+      <button onclick="toggleTheme()">🌙</button>
+      <button id="loginBtn">login</button>
+      <button id="logoutBtn" style="display:none">logout</button>
     </div>
+  </div>
 
-    <div class="header">
-        <h1>sharvesh's posts</h1>
-        <div class="controls">
-            <button onclick="toggleTheme()">🌙</button>
-            <button id="loginBtn">login</button>
-            <button id="logoutBtn" style="display:none">logout</button>
-        </div>
+  <div class="bio">
+    <div class="bio-preview">
+      <p>conscript. writing at <a href="https://www.sharvesh.com/">sharvesh.com</a></p>
+      <button onclick="toggleBio()" class="bio-toggle">more ▼</button>
     </div>
-
-    <div class="bio">
-        <div class="bio-preview">
-            <p>conscript. writing at <a href="https://www.sharvesh.com/">sharvesh.com</a></p>
-            <button onclick="toggleBio()" class="bio-toggle">more ▼</button>
-        </div>
-        <div class="bio-full" style="display:none">
-            <ul>
-                <li>2023 - present: writing [redacted]</li>
-                <li>2020 - 2022: ran up fund 770,000% to $1m+ during zirp $1b+ volume</li>
-                <li>2020 - 2021: made youtube videos</li>
-                <li>2019 - present: writing at blog, 195+ posts, 100k+ reads</li>
-                <li>2019 - 2020: reading 100 books arc</li>
-            </ul>
-            <br>
-            <h2>some posts</h2>
-            <ul>
-              <li>19th birthday post (soon)</a></li>
-              <li><a href="https://www.sharvesh.com/p/sharvenium-180">18th birthday post</a></li>
-              <li><a href="https://www.sharvesh.com/p/the-art-of-missing-the-pump">the art of missing the pump</a></li>
-              <li><a href="https://www.sharvesh.com/p/selling-a-100000x-for-a-2x-and-fumbling">'losing' a hundred million dollars</a></li>
-              <li><a href="https://www.sharvesh.com/p/the-patriarch-joseph-p-kennedy">the patriarch joseph p. kennedy</a></li>
-            </ul>
-            <br>
-        
-            <h2>fav books</h2>
-            <ul>
-              <li>elon musk, steve jobs, kissinger by walter isaacson</li> 
-              <li>the years of lyndon johnson by robert caro</li> 
-              <li>napoleon by andrew roberts</li> 
-              <li>alexander hamilton, titan by ron chernow</li> 
-              <li>the patriarch by david nasaw</li> 
-              <li>the theodore roosevelt trilogy by edmund morris</li> 
-              <li>total recall by arnold schwarzenegger</li>
-              <li>the singapore story by lee kuan yew</li> 
-              <li>hpmor by eliezer yudkowsky</li>   
-            </ul>
-        
-            <br>
-        
-            <h4>@sharvenium everywhere</h4>        
-            <button onclick="toggleBio()" class="bio-toggle">less ▲</button>
-        </div>
+    <div class="bio-full" style="display:none">
+      <ul>
+        <li>2023 - present: writing [redacted]</li>
+        <li>2020 - 2022: ran up fund 770,000% to $1m+ during zirp $1b+ volume</li>
+        <li>2020 - 2021: made youtube videos</li>
+        <li>2019 - present: writing at blog, 195+ posts, 100k+ reads</li>
+        <li>2019 - 2020: reading 100 books arc</li>
+      </ul>
+      <button onclick="toggleBio()" class="bio-toggle">less ▲</button>
     </div>
+  </div>
 
-    <input type="text" 
-           placeholder="search" 
-           onkeyup="searchPosts(this.value)">
+  <input type="text" placeholder="search" onkeyup="searchPosts(this.value)">
 
-    <div id="postContainer" style="display:none">
-        <textarea id="postInput" 
-                  placeholder="what's on your mind?"
-                  oninput="handleTyping(event)"></textarea>
-
-        <div class="post-actions">
-            <button onclick="publishPost(true)">post</button>
-        </div>
+  <div id="postContainer" style="display:none">
+    <textarea id="postInput" placeholder="what's on your mind?" oninput="handleTyping(event)"></textarea>
+    <div class="post-actions">
+      <button onclick="publishPost(true)">post</button>
     </div>
+  </div>
 
-    <div id="timeline"></div>
-    <div class="toast" id="toast"></div>
+  <!-- presence display + draft preview -->
+  <div id="presenceIndicator"></div>
+  <div id="liveDraftPreview"></div>
 
-    <script>
-        let auth0Client = null;
-        let posts = [];
-        let isDark = localStorage.getItem('theme') === 'dark';
-        let currentDraft = null;
-        let typingTimeout = null;
-        let liveIndicatorTimeout = null;
+  <div id="timeline"></div>
+  <div class="toast" id="toast"></div>
 
-        if (isDark) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️';
+  <script>
+    let auth0Client = null;
+    let posts = [];
+    let isDark = localStorage.getItem('theme') === 'dark';
+    let currentDraft = null;
+    let typingTimeout = null;
+    let liveIndicatorTimeout = null;
+
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️';
+    }
+
+    marked.setOptions({ breaks: true });
+
+    function toggleBio() {
+      const preview = document.querySelector('.bio-preview');
+      const full = document.querySelector('.bio-full');
+      if (full.style.display === 'none') {
+        preview.querySelector('.bio-toggle').style.display = 'none';
+        full.style.display = 'block';
+      } else {
+        preview.querySelector('.bio-toggle').style.display = 'block';
+        full.style.display = 'none';
+      }
+    }
+
+    function showLiveIndicator(show) {
+      const liveBar = document.getElementById('liveBar');
+      liveBar.style.display = show ? 'block' : 'none';
+      document.body.style.marginTop = show ? '70px' : '20px';
+    }
+
+    // track presence
+    function initPresence() {
+      const db = firebase.database();
+      const userRef = db.ref('presence/sharvesh');
+      const offlineState = {
+        state: 'offline',
+        lastChanged: firebase.database.ServerValue.TIMESTAMP
+      };
+      const onlineState = {
+        state: 'online',
+        lastChanged: firebase.database.ServerValue.TIMESTAMP
+      };
+
+      db.ref('.info/connected').on('value', snap => {
+        if (!snap.val()) {
+          // if not connected, set offline
+          userRef.set(offlineState);
+          return;
         }
+        // if connected, set up onDisconnect
+        userRef.onDisconnect().set(offlineState).then(() => {
+          userRef.set(onlineState);
+        });
+      });
 
-        marked.setOptions({ breaks: true });
-
-        function toggleBio() {
-            const preview = document.querySelector('.bio-preview');
-            const full = document.querySelector('.bio-full');
-            if (full.style.display === 'none') {
-                preview.querySelector('.bio-toggle').style.display = 'none';
-                full.style.display = 'block';
-            } else {
-                preview.querySelector('.bio-toggle').style.display = 'block';
-                full.style.display = 'none';
-            }
+      // watch for changes
+      userRef.on('value', snapshot => {
+        const val = snapshot.val();
+        if (!val) return;
+        const presenceEl = document.getElementById('presenceIndicator');
+        const isOnline = val.state === 'online';
+        const lastChanged = new Date(val.lastChanged).toLocaleString();
+        if (isOnline) {
+          presenceEl.textContent = 'sharvesh is online rn';
+        } else {
+          presenceEl.textContent = `sharvesh was last seen at ${lastChanged}`;
         }
+      });
+    }
 
-        function showLiveIndicator(show) {
-            const liveBar = document.getElementById('liveBar');
-            liveBar.style.display = show ? 'block' : 'none';
-            
-            // If hiding, also adjust body margin
-            document.body.style.marginTop = show ? '70px' : '20px';
+    // watchers see partial draft text
+    function initDraftViewer() {
+      const db = firebase.database();
+      db.ref('drafts/sharvesh').on('value', snapshot => {
+        const data = snapshot.val();
+        const draftEl = document.getElementById('liveDraftPreview');
+        if (!data) {
+          draftEl.innerHTML = '';
+          return;
         }
+        draftEl.innerHTML = marked.parse(data.content);
+      });
+    }
 
-        async function handleTyping(event) {
-    const isAuthenticated = await auth0Client.isAuthenticated();
-    if (!isAuthenticated) return;
+    async function handleTyping(event) {
+      const isAuthenticated = await auth0Client.isAuthenticated();
+      if (!isAuthenticated) return;
 
-    clearTimeout(typingTimeout);
-    clearTimeout(liveIndicatorTimeout);
+      clearTimeout(typingTimeout);
+      clearTimeout(liveIndicatorTimeout);
 
-    // update firebase that user is writing
-    const db = firebase.database();
-    db.ref('typingStatus').set({ 
+      const db = firebase.database();
+      // set isWriting so others see the bar
+      db.ref('typingStatus').set({
         isWriting: true,
         timestamp: Date.now()
-    });
+      });
 
-    typingTimeout = setTimeout(async () => {
-        const content = event.target.value.trim();
+      const newContent = event.target.value;
+
+      // push partial content for watchers
+      db.ref('drafts/sharvesh').set({
+        content: newContent,
+        timestamp: Date.now()
+      });
+
+      // wait 1s after user stops to finalize isWriting
+      typingTimeout = setTimeout(async () => {
+        const content = newContent.trim();
         if (!content) {
-            if (currentDraft) {
-                await db.ref(`posts/${currentDraft}`).remove();
-                currentDraft = null;
-            }
-            // once user is done, set isWriting = false
-            db.ref('typingStatus').set({ 
-                isWriting: false,
-                timestamp: Date.now()
-            });
-            return;
+          // if empty, remove the draft
+          db.ref('drafts/sharvesh').remove();
+          if (currentDraft) {
+            await db.ref(`posts/${currentDraft}`).remove();
+            currentDraft = null;
+          }
+          db.ref('typingStatus').set({
+            isWriting: false,
+            timestamp: Date.now()
+          });
+          return;
         }
 
+        // your existing "store as a draft" logic
         if (!currentDraft) {
-            const ref = await db.ref('posts').push({
-                content,
-                timestamp: Date.now(),
-                isDraft: true
-            });
-            currentDraft = ref.key;
+          const ref = await db.ref('posts').push({
+            content,
+            timestamp: Date.now(),
+            isDraft: true
+          });
+          currentDraft = ref.key;
         } else {
-            await db.ref(`posts/${currentDraft}`).update({
-                content,
-                timestamp: Date.now()
-            });
+          await db.ref(`posts/${currentDraft}`).update({
+            content,
+            timestamp: Date.now()
+          });
         }
-        // user done drafting, set isWriting = false
-        db.ref('typingStatus').set({ 
-            isWriting: false,
-            timestamp: Date.now()
+        // set isWriting false after we store
+        db.ref('typingStatus').set({
+          isWriting: false,
+          timestamp: Date.now()
         });
-    }, 300);
+      }, 1000);
 
-    // if user hasn't typed for 3s, we also consider them done
-    liveIndicatorTimeout = setTimeout(() => {
-        db.ref('typingStatus').set({ 
-            isWriting: false,
-            timestamp: Date.now()
+      // extend the "typing" bar to ~5s so it doesn't flicker
+      liveIndicatorTimeout = setTimeout(() => {
+        db.ref('typingStatus').set({
+          isWriting: false,
+          timestamp: Date.now()
         });
-    }, 3000);
-}
+      }, 5000);
+    }
 
-        // Rest of your existing functions (initAuth0, initFirebase, etc.) remain the same
-        async function initAuth0() {
-    try {
+    // watch for changes in typingStatus
+    function setupTypingListener() {
+      const db = firebase.database();
+      db.ref('typingStatus').on('value', snapshot => {
+        const status = snapshot.val();
+        if (!status) return;
+        showLiveIndicator(status.isWriting);
+      });
+    }
+
+    async function initAuth0() {
+      try {
         auth0Client = await auth0.createAuth0Client({
-            domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
-            clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
-            authorizationParams: {
-                redirect_uri: window.location.origin
-            }
+          domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+          clientId: 'z97keo08fomauocmmopfglaib0obi1k2',
+          authorizationParams: {
+            redirect_uri: window.location.origin
+          }
         });
 
         if (window.location.search.includes("code=")) {
-            await auth0Client.handleRedirectCallback();
-            window.history.replaceState({}, document.title, window.location.pathname);
+          await auth0Client.handleRedirectCallback();
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
-
         updateUI();
-    } catch (e) {
-        console.error("Auth0 init error:", e);
+      } catch (e) {
+        console.error("auth0 init error:", e);
+      }
     }
-}
 
-function initFirebase() {
-    const firebaseConfig = {
+    function initFirebase() {
+      const firebaseConfig = {
         apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
         authDomain: "twitterblog-9e7ea.firebaseapp.com",
         databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -383,68 +436,57 @@ function initFirebase() {
         storageBucket: "twitterblog-9e7ea.firebasestorage.app",
         messagingSenderId: "564254133364",
         appId: "1:564254133364:web:e89a32517db54517369521"
-    };
+      };
+      firebase.initializeApp(firebaseConfig);
+      loadPosts();
+    }
 
-    firebase.initializeApp(firebaseConfig);
-    loadPosts();
-}
-
-async function updateUI() {
-    try {
+    async function updateUI() {
+      try {
         const isAuthenticated = await auth0Client.isAuthenticated();
         if (isAuthenticated) {
-            const user = await auth0Client.getUser();
-            console.log('Logged in as:', user.email); // For debugging
-            if (user.email === "sharvenium@gmail.com") {
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('logoutBtn').style.display = 'block';
-                document.getElementById('postContainer').style.display = 'block';
-                return;
-            }
-            await logout();
-            showToast('Access denied');
+          const user = await auth0Client.getUser();
+          console.log('logged in as:', user.email);
+          if (user.email === "sharvenium@gmail.com") {
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('postContainer').style.display = 'block';
+            return;
+          }
+          await logout();
+          showToast('access denied');
         }
         document.getElementById('loginBtn').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'none';
         document.getElementById('postContainer').style.display = 'none';
-    } catch (e) {
-        console.error('UpdateUI error:', e);
+      } catch (e) {
+        console.error('updateui error:', e);
+      }
     }
-}
 
-async function login() {
-    await auth0Client.loginWithRedirect({
+    async function login() {
+      await auth0Client.loginWithRedirect({
         authorizationParams: {
-            redirect_uri: window.location.origin
+          redirect_uri: window.location.origin
         }
-    });
-}
+      });
+    }
 
-async function logout() {
-    await auth0Client.logout({
+    async function logout() {
+      await auth0Client.logout({
         logoutParams: {
-            returnTo: window.location.origin
+          returnTo: window.location.origin
         }
-    });
-}
-function setupTypingListener() {
-    const db = firebase.database();
-    db.ref('typingStatus').on('value', snapshot => {
-        const status = snapshot.val();
-        if (!status) return;
-        showLiveIndicator(status.isWriting);
-    });
-}
+      });
+    }
 
-
-async function publishPost(final = false) {
-    try {
+    async function publishPost(final = false) {
+      try {
         const isAuthenticated = await auth0Client.isAuthenticated();
         const user = await auth0Client.getUser();
-        
         if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
-            showToast('Access denied');
-            return;
+          showToast('access denied');
+          return;
         }
 
         const input = document.getElementById('postInput');
@@ -452,127 +494,123 @@ async function publishPost(final = false) {
         if (!content) return;
 
         const db = firebase.database();
-        
-        // If publishing final post
-        if (final) {
-            // If there's a draft, delete it and create new final post
-            if (currentDraft) {
-                await db.ref(`posts/${currentDraft}`).remove();
-                currentDraft = null;
-            }
-            await db.ref('posts').push({
-                content: content,
-                timestamp: Date.now(),
-                isDraft: false
-            });
-            input.value = '';
-            showToast('Posted!');
-            showLiveIndicator(false);
-        }
-    } catch (e) {
-        console.error("Post error:", e);
-        showToast('Error posting');
-    }
-}
 
-async function deletePost(postId) {
-    try {
+        if (final) {
+          // remove the draft if present
+          db.ref('drafts/sharvesh').remove();
+          if (currentDraft) {
+            await db.ref(`posts/${currentDraft}`).remove();
+            currentDraft = null;
+          }
+          await db.ref('posts').push({
+            content,
+            timestamp: Date.now(),
+            isDraft: false
+          });
+          input.value = '';
+          showToast('posted!');
+          showLiveIndicator(false);
+        }
+      } catch (e) {
+        console.error("post error:", e);
+        showToast('error posting');
+      }
+    }
+
+    async function deletePost(postId) {
+      try {
         const isAuthenticated = await auth0Client.isAuthenticated();
         const user = await auth0Client.getUser();
-        
         if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
-            showToast('Access denied');
-            return;
+          showToast('access denied');
+          return;
         }
+        if (!confirm('delete this post?')) return;
 
-        if (!confirm('Delete this post?')) return;
-        
         const db = firebase.database();
         await db.ref(`posts/${postId}`).remove();
-        showToast('Deleted!');
-    } catch (e) {
-        console.error("Delete error:", e);
-        showToast('Error deleting');
+        showToast('deleted!');
+      } catch (e) {
+        console.error("delete error:", e);
+        showToast('error deleting');
+      }
     }
-}
 
-function searchPosts(query) {
-    query = query.toLowerCase();
-    const timeline = document.getElementById('timeline');
-    timeline.innerHTML = '';
-    
-    posts.filter(([key, post]) => 
-        post.content.toLowerCase().includes(query)
-    ).forEach(([key, post]) => {
-        renderPost(key, post, timeline);
-    });
-}
+    function searchPosts(query) {
+      query = query.toLowerCase();
+      const timeline = document.getElementById('timeline');
+      timeline.innerHTML = '';
+      posts
+        .filter(([key, post]) => post.content.toLowerCase().includes(query))
+        .forEach(([key, post]) => {
+          renderPost(key, post, timeline);
+        });
+    }
 
-async function renderPost(key, post, timeline) {
-    const date = new Date(post.timestamp);
-    const postEl = document.createElement('div');
-    postEl.className = 'post';
-    
-    const isAuthenticated = await auth0Client.isAuthenticated();
-    
-    postEl.innerHTML = `
+    async function renderPost(key, post, timeline) {
+      const date = new Date(post.timestamp);
+      const postEl = document.createElement('div');
+      postEl.className = 'post';
+
+      const isAuthenticated = await auth0Client.isAuthenticated();
+
+      postEl.innerHTML = `
         <div class="post-header">
-            <div class="timestamp">${date.toLocaleString()}</div>
-            ${isAuthenticated ? `
-            <div class="post-actions">
-                <button onclick="deletePost('${key}')">delete</button>
-            </div>
-            ` : ''}
+          <div class="timestamp">${date.toLocaleString()}</div>
+          ${isAuthenticated ? `
+          <div class="post-actions">
+            <button onclick="deletePost('${key}')">delete</button>
+          </div>
+          ` : ''}
         </div>
         <div class="content">${marked.parse(post.content)}</div>
-    `;
+      `;
 
-    timeline.appendChild(postEl);
-}
+      timeline.appendChild(postEl);
+    }
 
-// Also modify loadPosts to only show non-draft posts for viewers
-function loadPosts() {
-    const db = firebase.database();
-    db.ref('posts').on('value', async (snapshot) => {
+    function loadPosts() {
+      const db = firebase.database();
+      db.ref('posts').on('value', async (snapshot) => {
         const timeline = document.getElementById('timeline');
         timeline.innerHTML = '';
-        
         const postsData = snapshot.val();
         if (!postsData) return;
 
         posts = Object.entries(postsData)
-            .filter(([,post]) => !post.isDraft)  // Only show non-draft posts
-            .sort(([,a], [,b]) => b.timestamp - a.timestamp);
+          .filter(([,post]) => !post.isDraft)
+          .sort(([,a], [,b]) => b.timestamp - a.timestamp);
 
         posts.forEach(([key, post]) => {
-            renderPost(key, post, timeline);
+          renderPost(key, post, timeline);
         });
-    });
-}
+      });
+    }
 
-function toggleTheme() {
-    isDark = !isDark;
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-}
+    function toggleTheme() {
+      isDark = !isDark;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
 
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 3000);
-}
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 3000);
+    }
 
-document.getElementById('loginBtn').onclick = login;
-document.getElementById('logoutBtn').onclick = logout;
+    document.getElementById('loginBtn').onclick = login;
+    document.getElementById('logoutBtn').onclick = logout;
 
-        window.onload = async () => {
-            await initAuth0();
-            initFirebase();
-            setupTypingListener();
-
-        };
-    </script>
+    window.onload = async () => {
+      await initAuth0();
+      initFirebase();
+      initPresence();
+      setupTypingListener();
+      initDraftViewer();
+    };
+  </script>
 </body>
 </html>
