@@ -268,43 +268,50 @@
         }
 
         async function handleTyping(event) {
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            if (!isAuthenticated) return;
+    const isAuthenticated = await auth0Client.isAuthenticated();
+    if (!isAuthenticated) return;
 
-            // Show live indicator
-            showLiveIndicator(true);
-            
-            // Clear previous timeouts
-            clearTimeout(typingTimeout);
-            clearTimeout(liveIndicatorTimeout);
-            
-            // Set new timeouts
-            typingTimeout = setTimeout(async () => {
-                const content = event.target.value.trim();
-                if (!content) return;
-
+    // Show live indicator
+    showLiveIndicator(true);
+    
+    // Clear previous timeouts
+    clearTimeout(typingTimeout);
+    clearTimeout(liveIndicatorTimeout);
+    
+    // Set new timeouts
+    typingTimeout = setTimeout(async () => {
+        const content = event.target.value.trim();
+        if (!content) {
+            if (currentDraft) {
                 const db = firebase.database();
-                if (!currentDraft) {
-                    const ref = await db.ref('posts').push({
-                        content: content,
-                        timestamp: Date.now(),
-                        final: false
-                    });
-                    currentDraft = ref.key;
-                } else {
-                    await db.ref(`posts/${currentDraft}`).update({
-                        content: content,
-                        timestamp: Date.now()
-                    });
-                }
-            }, 300);
-
-            // Hide live indicator after 3 seconds of no typing
-            liveIndicatorTimeout = setTimeout(() => {
-                showLiveIndicator(false);
-            }, 3000);
+                await db.ref(`posts/${currentDraft}`).remove();
+                currentDraft = null;
+            }
+            return;
         }
 
+        // Only update the current draft, don't create new ones while typing
+        const db = firebase.database();
+        if (!currentDraft) {
+            const ref = await db.ref('posts').push({
+                content: content,
+                timestamp: Date.now(),
+                isDraft: true
+            });
+            currentDraft = ref.key;
+        } else {
+            await db.ref(`posts/${currentDraft}`).update({
+                content: content,
+                timestamp: Date.now()
+            });
+        }
+    }, 300);
+
+    // Hide live indicator after 3 seconds of no typing
+    liveIndicatorTimeout = setTimeout(() => {
+        showLiveIndicator(false);
+    }, 3000);
+}
         // Rest of your existing functions (initAuth0, initFirebase, etc.) remain the same
         async function initAuth0() {
     try {
@@ -396,25 +403,19 @@ async function publishPost(final = false) {
         if (!content) return;
 
         const db = firebase.database();
-        if (currentDraft && !final) {
-            await db.ref(`posts/${currentDraft}`).update({
-                content: content,
-                timestamp: Date.now()
-            });
-        } else {
-            const ref = await db.ref('posts').push({
-                content: content,
-                timestamp: Date.now(),
-                final: final
-            });
-            if (!final) {
-                currentDraft = ref.key;
-            } else {
+        
+        // If publishing final post
+        if (final) {
+            // If there's a draft, delete it and create new final post
+            if (currentDraft) {
+                await db.ref(`posts/${currentDraft}`).remove();
                 currentDraft = null;
             }
-        }
-
-        if (final) {
+            await db.ref('posts').push({
+                content: content,
+                timestamp: Date.now(),
+                isDraft: false
+            });
             input.value = '';
             showToast('Posted!');
             showLiveIndicator(false);
@@ -480,6 +481,7 @@ async function renderPost(key, post, timeline) {
     timeline.appendChild(postEl);
 }
 
+// Also modify loadPosts to only show non-draft posts for viewers
 function loadPosts() {
     const db = firebase.database();
     db.ref('posts').on('value', async (snapshot) => {
@@ -490,6 +492,7 @@ function loadPosts() {
         if (!postsData) return;
 
         posts = Object.entries(postsData)
+            .filter(([,post]) => !post.isDraft)  // Only show non-draft posts
             .sort(([,a], [,b]) => b.timestamp - a.timestamp);
 
         posts.forEach(([key, post]) => {
