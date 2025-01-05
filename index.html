@@ -447,7 +447,12 @@
         console.error("auth0 init error:", e);
       }
     }
-
+    async function updateFirebaseAuth() {
+  if (await auth0Client.isAuthenticated()) {
+    const token = await auth0Client.getTokenSilently();
+    await firebase.auth().signInWithCustomToken(token);
+  }
+}
     function initFirebase() {
       const firebaseConfig = {
         apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
