@@ -212,17 +212,21 @@
         const isAuthenticated = await auth0Client.isAuthenticated();
         if (isAuthenticated) {
             const user = await auth0Client.getUser();
-            console.log('Logged in as:', user.email); // This helps debug
-            if (user.email !== "sharvenium@gmail.com") {
-                console.log('Unauthorized access, logging out');
-                await logout();
-                showToast('Access denied');
+            console.log('Logged in as:', user.email); // For debugging
+            if (user.email === "sharvenium@gmail.com") {
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'block';
+                document.getElementById('postContainer').style.display = 'block';
                 return;
             }
+            // If not sharvenium, log them out
+            await logout();
+            showToast('Access denied');
         }
-        document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
-        document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
-        document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
+        // Default state (not logged in or wrong user)
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'none';
+        document.getElementById('postContainer').style.display = 'none';
     } catch (e) {
         console.error('UpdateUI error:', e);
     }
@@ -252,60 +256,68 @@
         }
 
         async function publishPost(final = false) {
-            const input = document.getElementById('postInput');
-            const content = input.value.trim();
-            
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            if (!isAuthenticated) {
-                showToast('Please login to post');
-                return;
-            }
+    try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        const user = await auth0Client.getUser();
+        
+        if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
+            showToast('Access denied');
+            return;
+        }
 
-            try {
-                const db = firebase.database();
-                if (currentDraft && !final) {
-                    await db.ref(`posts/${currentDraft}`).update({
-                        content: content,
-                        timestamp: Date.now()
-                    });
-                } else {
-                    const ref = await db.ref('posts').push({
-                        content: content,
-                        timestamp: Date.now(),
-                        final: final
-                    });
-                    if (!final) {
-                        currentDraft = ref.key;
-                    } else {
-                        currentDraft = null;
-                    }
-                }
+        const input = document.getElementById('postInput');
+        const content = input.value.trim();
+        if (!content) return;
 
-                if (final) {
-                    input.value = '';
-                    showToast('Posted!');
-                }
-            } catch (e) {
-                console.error("Post error:", e);
-                showToast('Error posting');
+        const db = firebase.database();
+        if (currentDraft && !final) {
+            await db.ref(`posts/${currentDraft}`).update({
+                content: content,
+                timestamp: Date.now()
+            });
+        } else {
+            const ref = await db.ref('posts').push({
+                content: content,
+                timestamp: Date.now(),
+                final: final
+            });
+            if (!final) {
+                currentDraft = ref.key;
+            } else {
+                currentDraft = null;
             }
         }
 
-        async function deletePost(postId) {
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            if (!isAuthenticated) return;
-
-            if (!confirm('Delete this post?')) return;
-            
-            try {
-                const db = firebase.database();
-                await db.ref(`posts/${postId}`).remove();
-                showToast('Deleted!');
-            } catch (e) {
-                console.error("Delete error:", e);
-                showToast('Error deleting');
-            }
+        if (final) {
+            input.value = '';
+            showToast('Posted!');
         }
+    } catch (e) {
+        console.error("Post error:", e);
+        showToast('Error posting');
+    }
+}
+
+async function deletePost(postId) {
+    try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        const user = await auth0Client.getUser();
+        
+        if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
+            showToast('Access denied');
+            return;
+        }
+
+        if (!confirm('Delete this post?')) return;
+        
+        const db = firebase.database();
+        await db.ref(`posts/${postId}`).remove();
+        showToast('Deleted!');
+    } catch (e) {
+        console.error("Delete error:", e);
+        showToast('Error deleting');
+    }
+}
 
         function searchPosts(query) {
             query = query.toLowerCase();
