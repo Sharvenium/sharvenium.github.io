@@ -22,7 +22,9 @@
       --subtle: #222222;
       --accent: #999999;
     }
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
       max-width: 650px;
@@ -46,7 +48,7 @@
       align-items: center;
       gap: 16px;
     }
-    .presence { 
+    .presence {
       font-size: 14px;
       color: var(--accent);
     }
@@ -64,7 +66,9 @@
       transition: opacity 0.2s;
       padding: 6px 8px;
     }
-    button:hover { opacity: 1; }
+    button:hover {
+      opacity: 1;
+    }
     #searchInput {
       border: 1px solid var(--subtle);
       padding: 6px 8px;
@@ -87,13 +91,17 @@
       color: var(--primary);
       text-decoration: none;
     }
-    .bio a:hover { text-decoration: underline; }
+    .bio a:hover {
+      text-decoration: underline;
+    }
     .bio ul {
       list-style-type: none;
       margin: 16px 0;
       padding: 0;
     }
-    .bio li { margin-bottom: 8px; }
+    .bio li {
+      margin-bottom: 8px;
+    }
     .bio-toggle {
       background: none;
       border: none;
@@ -117,7 +125,9 @@
       background: var(--bg);
       color: var(--text);
     }
-    .post-actions { margin-top: 8px; }
+    .post-actions {
+      margin-top: 8px;
+    }
     .post {
       padding: 24px 0;
       border-bottom: 1px solid var(--subtle);
@@ -129,8 +139,12 @@
       margin-bottom: 8px;
       font-size: 14px;
     }
-    .timestamp { color: var(--accent); }
-    .content { white-space: pre-wrap; }
+    .timestamp {
+      color: var(--accent);
+    }
+    .content {
+      white-space: pre-wrap;
+    }
     .toast {
       position: fixed;
       bottom: 20px;
@@ -141,6 +155,10 @@
       font-size: 14px;
       display: none;
       animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
     .live-bar {
       position: fixed;
@@ -158,20 +176,16 @@
       animation: pulse 2s infinite;
       z-index: 1000;
     }
+    @keyframes pulse {
+      0% { opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { opacity: 0.8; }
+    }
     #liveDraftPreview {
       margin-top: 16px;
       padding: 10px;
       border: 1px dashed var(--subtle);
       min-height: 40px;
-    }
-    @keyframes slideIn {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    @keyframes pulse {
-      0% { opacity: 0.8; }
-      50% { opacity: 1; }
-      100% { opacity: 0.8; }
     }
   </style>
 </head>
@@ -180,24 +194,26 @@
     🔴 sharvesh is writing right now...
   </div>
 
+  <!-- header -->
   <div class="header">
     <div class="header-left">
       <h1>sharvesh's posts</h1>
       <div class="presence" id="presenceIndicator"></div>
     </div>
     <div class="controls">
-      <button onclick="app.ui.toggleSearch()">🔍</button>
-      <input type="text" id="searchInput" placeholder="search" onkeyup="app.posts.search(this.value)">
-      <button onclick="app.theme.toggle()">🌙</button>
+      <button onclick="toggleSearch()">🔍</button>
+      <input type="text" id="searchInput" placeholder="search" onkeyup="searchPosts(this.value)">
+      <button onclick="toggleTheme()">🌙</button>
       <button id="loginBtn">login</button>
       <button id="logoutBtn" style="display:none">logout</button>
     </div>
   </div>
 
+  <!-- small bio -->
   <div class="bio">
     <div class="bio-preview">
       <p>conscript. writing at <a href="https://www.sharvesh.com/">sharvesh.com</a></p>
-      <button onclick="app.ui.toggleBio()" class="bio-toggle">more ▼</button>
+      <button onclick="toggleBio()" class="bio-toggle">more ▼</button>
     </div>
     <div class="bio-full" style="display:none">
       <h2>some projects</h2>
@@ -218,6 +234,7 @@
         <li><a href="https://www.sharvesh.com/p/the-patriarch-joseph-p-kennedy">the patriarch joseph p. kennedy</a></li>
       </ul>
       <br>
+  
       <h2>fav books</h2>
       <ul>
         <li>elon musk, steve jobs, kissinger by walter isaacson</li> 
@@ -230,285 +247,404 @@
         <li>the singapore story by lee kuan yew</li> 
         <li>hpmor by eliezer yudkowsky</li>   
       </ul>
+  
       <br>
+  
       <h4>@sharvenium everywhere</h4>        
-      <button onclick="app.ui.toggleBio()" class="bio-toggle">less ▲</button>
+      <button onclick="toggleBio()" class="bio-toggle">less ▲</button>
     </div>
   </div>
 
+  <!-- stats row -->
   <div class="stats-row">
     <span id="totalPosts"></span> | <span id="todayPosts"></span>
   </div>
 
+  <!-- post container -->
   <div id="postContainer">
-    <textarea id="postInput" placeholder="what's on your mind?" oninput="app.posts.handleTyping(event)"></textarea>
+    <textarea id="postInput" placeholder="what's on your mind?" oninput="handleTyping(event)"></textarea>
     <div class="post-actions">
-      <button onclick="app.posts.publish(true)">post</button>
+      <button onclick="publishPost(true)">post</button>
     </div>
     <div id="liveDraftPreview"></div>
   </div>
 
+  <!-- timeline -->
   <div id="timeline"></div>
   <div class="toast" id="toast"></div>
+
   <script>
-    // Main application namespace
-    const app = {
-      // Initialize DOM references
-      initElements() {
-        const elements = [
-          'searchInput', 'loginBtn', 'logoutBtn', 'postContainer',
-          'postInput', 'timeline', 'toast', 'liveBar', 'presenceIndicator',
-          'totalPosts', 'todayPosts', 'liveDraftPreview'
-        ];
-        elements.forEach(id => {
-          this.elements[id] = document.getElementById(id);
-        });
-      },
+    let auth0Client = null;
+    let posts = [];
+    let isDark = localStorage.getItem('theme') === 'dark';
+    let currentDraft = null;
+    let typingTimeout = null;
+    let liveIndicatorTimeout = null;
 
-      // Initialize Firebase
-      initFirebase() {
-        const config = {
-          apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
-          authDomain: "twitterblog-9e7ea.firebaseapp.com",
-          databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
-          projectId: "twitterblog-9e7ea",
-          storageBucket: "twitterblog-9e7ea.firebasestorage.app",
-          messagingSenderId: "564254133364",
-          appId: "1:564254133364:web:e89a32517db54517369521"
-        };
-        firebase.initializeApp(config);
-        const db = firebase.database();
-        
-        // Cache common refs
-        this.refs = {
-          posts: db.ref('posts'),
-          drafts: db.ref('drafts/sharvesh'),
-          typingStatus: db.ref('typingStatus'),
-          presence: db.ref('presence/sharvesh')
-        };
-        
-        this.posts.load();
-      },
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️';
+    }
 
-      presence: {
-        init() {
-          const onlineState = {
-            state: 'online',
-            lastChanged: firebase.database.ServerValue.TIMESTAMP
-          };
-          const offlineState = {
-            state: 'offline',
-            lastChanged: firebase.database.ServerValue.TIMESTAMP
-          };
+    marked.setOptions({ breaks: true });
 
-          app.state.auth0Client.isAuthenticated().then(isAuthenticated => {
-            if (isAuthenticated) {
-              app.state.auth0Client.getUser().then(user => {
-                if (user.email === "sharvenium@gmail.com") {
-                  app.refs.presence.onDisconnect().set(offlineState);
-                  app.refs.presence.set(onlineState);
-                }
-              });
-            }
-          });
+    // toggle search input
+    function toggleSearch() {
+      const input = document.getElementById('searchInput');
+      input.style.display = (input.style.display === 'none' || !input.style.display) ? 'inline-block' : 'none';
+      if (input.style.display !== 'none') input.focus();
+    }
 
-          app.refs.presence.on('value', snapshot => {
-            const val = snapshot.val();
-            if (!val) return;
-            const isOnline = val.state === 'online';
-            const lastChanged = new Date(val.lastChanged).toLocaleString();
-            app.elements.presenceIndicator.textContent = isOnline ? 
-              'online rn' : 
-              `was last seen at ${lastChanged}`;
-          });
-        }
-      },
-
-      posts: {
-        async handleTyping(event) {
-          const isAuthenticated = await app.state.auth0Client.isAuthenticated();
-          if (!isAuthenticated) return;
-
-          app.state.timeouts.clear();
-
-          app.refs.typingStatus.set({ isWriting: true, timestamp: Date.now() });
-
-          const newContent = event.target.value;
-          app.refs.drafts.set({ content: newContent, timestamp: Date.now() });
-
-          app.state.timeouts.typing = setTimeout(async () => {
-            const content = newContent.trim();
-            if (!content) {
-              app.refs.drafts.remove();
-              if (app.state.currentDraft) {
-                await app.refs.posts.child(app.state.currentDraft).remove();
-                app.state.currentDraft = null;
-              }
-              app.refs.typingStatus.set({ isWriting: false, timestamp: Date.now() });
-              return;
-            }
-
-            if (!app.state.currentDraft) {
-              const ref = await app.refs.posts.push({
-                content,
-                timestamp: Date.now(),
-                isDraft: true
-              });
-              app.state.currentDraft = ref.key;
-            } else {
-              await app.refs.posts.child(app.state.currentDraft).update({
-                content,
-                timestamp: Date.now()
-              });
-            }
-            app.refs.typingStatus.set({ isWriting: false, timestamp: Date.now() });
-          }, 1000);
-
-          app.state.timeouts.liveIndicator = setTimeout(() => {
-            app.refs.typingStatus.set({ isWriting: false, timestamp: Date.now() });
-          }, 5000);
-        },
-
-        async publish(final = false) {
-          try {
-            const isAuthenticated = await app.state.auth0Client.isAuthenticated();
-            const user = await app.state.auth0Client.getUser();
-            if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
-              app.ui.showToast('access denied');
-              return;
-            }
-
-            const content = app.elements.postInput.value.trim();
-            if (!content) return;
-
-            if (final) {
-              app.refs.drafts.remove();
-              if (app.state.currentDraft) {
-                await app.refs.posts.child(app.state.currentDraft).remove();
-                app.state.currentDraft = null;
-              }
-              await app.refs.posts.push({
-                content,
-                timestamp: Date.now(),
-                isDraft: false
-              });
-              app.elements.postInput.value = '';
-              app.ui.showToast('posted!');
-              app.ui.showLiveIndicator(false);
-            }
-          } catch (e) {
-            console.error("Post error:", e);
-            app.ui.showToast('error posting');
-          }
-        },
-
-        async delete(postId) {
-          try {
-            const isAuthenticated = await app.state.auth0Client.isAuthenticated();
-            const user = await app.state.auth0Client.getUser();
-            if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
-              app.ui.showToast('access denied');
-              return;
-            }
-            if (!confirm('delete this post?')) return;
-
-            await app.refs.posts.child(postId).remove();
-            app.ui.showToast('deleted!');
-          } catch (e) {
-            console.error("Delete error:", e);
-            app.ui.showToast('error deleting');
-          }
-        },
-
-        search(query) {
-          query = query.toLowerCase();
-          const filteredPosts = app.state.posts
-            .filter(([, post]) => post.content.toLowerCase().includes(query));
-          this.render(filteredPosts);
-        },
-
-        async render(postsToRender = app.state.posts) {
-          const timeline = app.elements.timeline;
-          timeline.innerHTML = '';
-          const isAuthenticated = await app.state.auth0Client.isAuthenticated();
-
-          postsToRender.forEach(([key, post]) => {
-            const date = new Date(post.timestamp);
-            const postEl = document.createElement('div');
-            postEl.className = 'post';
-            postEl.innerHTML = `
-              <div class="post-header">
-                <div class="timestamp">${date.toLocaleString()}</div>
-                ${isAuthenticated ? `
-                <div class="post-actions">
-                  <button onclick="app.posts.delete('${key}')">delete</button>
-                </div>
-                ` : ''}
-              </div>
-              <div class="content">${marked.parse(post.content)}</div>
-            `;
-            timeline.appendChild(postEl);
-          });
-        },
-
-        load() {
-          app.refs.posts.on('value', async (snapshot) => {
-            const postsData = snapshot.val() || {};
-            app.state.posts = Object.entries(postsData)
-              .filter(([,post]) => !post.isDraft)
-              .sort(([,a], [,b]) => b.timestamp - a.timestamp);
-
-            this.updateStats();
-            await this.render();
-          });
-        },
-
-        updateStats() {
-          const total = app.state.posts.length;
-          const todayStr = new Date().toDateString();
-          const todayCount = app.state.posts.filter(([, p]) => 
-            new Date(p.timestamp).toDateString() === todayStr
-          ).length;
-          app.elements.totalPosts.textContent = 'total posts: ' + total;
-          app.elements.todayPosts.textContent = 'posts today: ' + todayCount;
-        }
-      },
-
-      drafts: {
-        init() {
-          app.refs.drafts.on('value', snapshot => {
-            const data = snapshot.val();
-            app.elements.liveDraftPreview.innerHTML = data ? 
-              marked.parse(data.content) : '';
-          });
-
-          app.refs.typingStatus.on('value', snapshot => {
-            const status = snapshot.val();
-            if (!status) return;
-            app.ui.showLiveIndicator(status.isWriting);
-          });
-        }
-      },
-
-      // Initialize everything
-      async init() {
-        marked.setOptions({ breaks: true });
-        
-        this.initElements();
-        this.theme.init();
-        await this.auth.init();
-        this.initFirebase();
-        this.presence.init();
-        this.drafts.init();
-
-        // Bind event handlers
-        this.elements.loginBtn.onclick = () => this.auth.login();
-        this.elements.logoutBtn.onclick = () => this.auth.logout();
+    function toggleBio() {
+      const preview = document.querySelector('.bio-preview');
+      const full = document.querySelector('.bio-full');
+      if (full.style.display === 'none') {
+        preview.querySelector('.bio-toggle').style.display = 'none';
+        full.style.display = 'block';
+      } else {
+        preview.querySelector('.bio-toggle').style.display = 'block';
+        full.style.display = 'none';
       }
-    };
+    }
 
-    // Start the app when loaded
-    window.onload = () => app.init();
+    function showLiveIndicator(show) {
+      const liveBar = document.getElementById('liveBar');
+      liveBar.style.display = show ? 'block' : 'none';
+      document.body.style.marginTop = show ? '70px' : '20px';
+    }
+
+    // presence
+    function initPresence() {
+  const db = firebase.database();
+  const userRef = db.ref('presence/sharvesh');
+  const offlineState = {
+    state: 'offline',
+    lastChanged: firebase.database.ServerValue.TIMESTAMP
+  };
+  const onlineState = {
+    state: 'online',
+    lastChanged: firebase.database.ServerValue.TIMESTAMP
+  };
+
+  // Listen to auth state changes
+  auth0Client.isAuthenticated().then(isAuthenticated => {
+    if (isAuthenticated) {
+      auth0Client.getUser().then(user => {
+        if (user.email === "sharvenium@gmail.com") {
+          // Only set up presence tracking if authenticated as the correct user
+          db.ref('.info/connected').on('value', snap => {
+            if (!snap.val()) {
+              userRef.set(offlineState);
+              return;
+            }
+            userRef.onDisconnect().set(offlineState).then(() => {
+              userRef.set(onlineState);
+            });
+          });
+        }
+      });
+    }
+  });
+
+  // Keep the presence indicator updated for all viewers
+  userRef.on('value', snapshot => {
+    const val = snapshot.val();
+    if (!val) return;
+    const presenceEl = document.getElementById('presenceIndicator');
+    const isOnline = val.state === 'online';
+    const lastChanged = new Date(val.lastChanged).toLocaleString();
+    if (isOnline) {
+      presenceEl.textContent = 'online rn';
+    } else {
+      presenceEl.textContent = `was last seen at ${lastChanged}`;
+    }
+  });
+}
+    function initDraftViewer() {
+      const db = firebase.database();
+      db.ref('drafts/sharvesh').on('value', snapshot => {
+        const data = snapshot.val();
+        const draftEl = document.getElementById('liveDraftPreview');
+        if (!data) {
+          draftEl.innerHTML = '';
+          return;
+        }
+        draftEl.innerHTML = marked.parse(data.content);
+      });
+    }
+
+    async function handleTyping(event) {
+      const isAuthenticated = await auth0Client.isAuthenticated();
+      if (!isAuthenticated) return;
+
+      clearTimeout(typingTimeout);
+      clearTimeout(liveIndicatorTimeout);
+
+      const db = firebase.database();
+      db.ref('typingStatus').set({ isWriting: true, timestamp: Date.now() });
+
+      const newContent = event.target.value;
+      db.ref('drafts/sharvesh').set({ content: newContent, timestamp: Date.now() });
+
+      typingTimeout = setTimeout(async () => {
+        const content = newContent.trim();
+        if (!content) {
+          db.ref('drafts/sharvesh').remove();
+          if (currentDraft) {
+            await db.ref(`posts/${currentDraft}`).remove();
+            currentDraft = null;
+          }
+          db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
+          return;
+        }
+
+        if (!currentDraft) {
+          const ref = await db.ref('posts').push({
+            content,
+            timestamp: Date.now(),
+            isDraft: true
+          });
+          currentDraft = ref.key;
+        } else {
+          await db.ref(`posts/${currentDraft}`).update({
+            content,
+            timestamp: Date.now()
+          });
+        }
+        db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
+      }, 1000);
+
+      liveIndicatorTimeout = setTimeout(() => {
+        db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
+      }, 5000);
+    }
+
+    function setupTypingListener() {
+      const db = firebase.database();
+      db.ref('typingStatus').on('value', snapshot => {
+        const status = snapshot.val();
+        if (!status) return;
+        showLiveIndicator(status.isWriting);
+      });
+    }
+
+    async function initAuth0() {
+      try {
+        auth0Client = await auth0.createAuth0Client({
+          domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+          clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
+          authorizationParams: {
+            redirect_uri: window.location.origin
+          }
+        });
+
+        if (window.location.search.includes("code=")) {
+          await auth0Client.handleRedirectCallback();
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        updateUI();
+      } catch (e) {
+        console.error("auth0 init error:", e);
+      }
+    }
+
+    function initFirebase() {
+      const firebaseConfig = {
+        apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
+        authDomain: "twitterblog-9e7ea.firebaseapp.com",
+        databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "twitterblog-9e7ea",
+        storageBucket: "twitterblog-9e7ea.firebasestorage.app",
+        messagingSenderId: "564254133364",
+        appId: "1:564254133364:web:e89a32517db54517369521"
+      };
+      firebase.initializeApp(firebaseConfig);
+      loadPosts();
+    }
+
+    async function updateUI() {
+      try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        if (isAuthenticated) {
+          const user = await auth0Client.getUser();
+          console.log('logged in as:', user.email);
+          if (user.email === "sharvenium@gmail.com") {
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('postContainer').style.display = 'block';
+            return;
+          }
+          await logout();
+          showToast('access denied');
+        }
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'none';
+        document.getElementById('postContainer').style.display = 'none';
+      } catch (e) {
+        console.error('updateui error:', e);
+      }
+    }
+
+    async function login() {
+      await auth0Client.loginWithRedirect({
+        authorizationParams: {
+          redirect_uri: window.location.origin
+        }
+      });
+    }
+
+    async function logout() {
+      await auth0Client.logout({
+        logoutParams: {
+          returnTo: window.location.origin
+        }
+      });
+    }
+
+    async function publishPost(final = false) {
+      try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        const user = await auth0Client.getUser();
+        if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
+          showToast('access denied');
+          return;
+        }
+
+        const input = document.getElementById('postInput');
+        const content = input.value.trim();
+        if (!content) return;
+
+        const db = firebase.database();
+        if (final) {
+          db.ref('drafts/sharvesh').remove();
+          if (currentDraft) {
+            await db.ref(`posts/${currentDraft}`).remove();
+            currentDraft = null;
+          }
+          await db.ref('posts').push({
+            content,
+            timestamp: Date.now(),
+            isDraft: false
+          });
+          input.value = '';
+          showToast('posted!');
+          showLiveIndicator(false);
+        }
+      } catch (e) {
+        console.error("post error:", e);
+        showToast('error posting');
+      }
+    }
+
+    async function deletePost(postId) {
+      try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        const user = await auth0Client.getUser();
+        if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
+          showToast('access denied');
+          return;
+        }
+        if (!confirm('delete this post?')) return;
+
+        const db = firebase.database();
+        await db.ref(`posts/${postId}`).remove();
+        showToast('deleted!');
+      } catch (e) {
+        console.error("delete error:", e);
+        showToast('error deleting');
+      }
+    }
+
+    function searchPosts(query) {
+      query = query.toLowerCase();
+      const timeline = document.getElementById('timeline');
+      timeline.innerHTML = '';
+      posts
+        .filter(([key, post]) => post.content.toLowerCase().includes(query))
+        .forEach(([key, post]) => {
+          renderPost(key, post, timeline);
+        });
+    }
+
+    async function renderPost(key, post, timeline) {
+      const date = new Date(post.timestamp);
+      const postEl = document.createElement('div');
+      postEl.className = 'post';
+
+      const isAuthenticated = await auth0Client.isAuthenticated();
+
+      postEl.innerHTML = `
+        <div class="post-header">
+          <div class="timestamp">${date.toLocaleString()}</div>
+          ${isAuthenticated ? `
+          <div class="post-actions">
+            <button onclick="deletePost('${key}')">delete</button>
+          </div>
+          ` : ''}
+        </div>
+        <div class="content">${marked.parse(post.content)}</div>
+      `;
+
+      timeline.appendChild(postEl);
+    }
+
+    function loadPosts() {
+      const db = firebase.database();
+      db.ref('posts').on('value', async (snapshot) => {
+        const timeline = document.getElementById('timeline');
+        timeline.innerHTML = '';
+        const postsData = snapshot.val();
+        if (!postsData) {
+          updateStats(0, 0);
+          return;
+        }
+
+        posts = Object.entries(postsData)
+          .filter(([,post]) => !post.isDraft)
+          .sort(([,a], [,b]) => b.timestamp - a.timestamp);
+
+        // update stats
+        updateStatsCount();
+
+        posts.forEach(([key, post]) => {
+          renderPost(key, post, timeline);
+        });
+      });
+    }
+
+    // update the stats row
+    function updateStatsCount() {
+      const total = posts.length;
+      const todayStr = new Date().toDateString();
+      const todayCount = posts.filter(([, p]) => new Date(p.timestamp).toDateString() === todayStr).length;
+      document.getElementById('totalPosts').textContent = 'total posts: ' + total;
+      document.getElementById('todayPosts').textContent = 'posts today: ' + todayCount;
+    }
+
+    function toggleTheme() {
+      isDark = !isDark;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 3000);
+    }
+
+    document.getElementById('loginBtn').onclick = login;
+    document.getElementById('logoutBtn').onclick = logout;
+
+    window.onload = async () => {
+      await initAuth0();
+      initFirebase();
+      initPresence();
+      setupTypingListener();
+      initDraftViewer();
+    };
   </script>
 </body>
 </html>
