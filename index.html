@@ -172,14 +172,14 @@
         marked.setOptions({ breaks: true });
 
         async function initAuth0() {
-            try {
-                auth0Client = await auth0.createAuth0Client({
-                    domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
-                    clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
-                    authorizationParams: {
-                        redirect_uri: window.location.origin
-                    }
-                });
+    try {
+        auth0Client = await auth0.createAuth0Client({
+            domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+            clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
+            authorizationParams: {
+                redirect_uri: window.location.origin
+            }
+        });
 
                 if (window.location.search.includes("code=")) {
                     await auth0Client.handleRedirectCallback();
@@ -208,18 +208,24 @@
         }
 
         async function updateUI() {
-    const isAuthenticated = await auth0Client.isAuthenticated();
-    if (isAuthenticated) {
-        const user = await auth0Client.getUser();
-        if (user.email !== "sharvenium@gmail.com") {
-            await logout();
-            showToast('Access denied - only Sharvesh can post');
-            return;
+    try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        if (isAuthenticated) {
+            const user = await auth0Client.getUser();
+            console.log('Logged in as:', user.email); // This helps debug
+            if (user.email !== "sharvenium@gmail.com") {
+                console.log('Unauthorized access, logging out');
+                await logout();
+                showToast('Access denied');
+                return;
+            }
         }
+        document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
+        document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
+        document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
+    } catch (e) {
+        console.error('UpdateUI error:', e);
     }
-    document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
-    document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
-    document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
 }
         async function login() {
             await auth0Client.loginWithRedirect({
