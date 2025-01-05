@@ -208,12 +208,19 @@
         }
 
         async function updateUI() {
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
-            document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
-            document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
+    const isAuthenticated = await auth0Client.isAuthenticated();
+    if (isAuthenticated) {
+        const user = await auth0Client.getUser();
+        if (user.email !== "sharvenium@gmail.com") {
+            await logout();
+            showToast('Access denied - only Sharvesh can post');
+            return;
         }
-
+    }
+    document.getElementById('loginBtn').style.display = isAuthenticated ? 'none' : 'block';
+    document.getElementById('logoutBtn').style.display = isAuthenticated ? 'block' : 'none';
+    document.getElementById('postContainer').style.display = isAuthenticated ? 'block' : 'none';
+}
         async function login() {
             await auth0Client.loginWithRedirect({
                 authorizationParams: {
