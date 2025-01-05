@@ -211,6 +211,33 @@
                 <li>2019 - present: writing at blog, 195+ posts, 100k+ reads</li>
                 <li>2019 - 2020: reading 100 books arc</li>
             </ul>
+            <br>
+            <h2>some posts</h2>
+            <ul>
+              <li>19th birthday post (soon)</a></li>
+              <li><a href="https://www.sharvesh.com/p/sharvenium-180">18th birthday post</a></li>
+              <li><a href="https://www.sharvesh.com/p/the-art-of-missing-the-pump">the art of missing the pump</a></li>
+              <li><a href="https://www.sharvesh.com/p/selling-a-100000x-for-a-2x-and-fumbling">'losing' a hundred million dollars</a></li>
+              <li><a href="https://www.sharvesh.com/p/the-patriarch-joseph-p-kennedy">the patriarch joseph p. kennedy</a></li>
+            </ul>
+            <br>
+        
+            <h2>fav books</h2>
+            <ul>
+              <li>elon musk, steve jobs, kissinger by walter isaacson</li> 
+              <li>the years of lyndon johnson by robert caro</li> 
+              <li>napoleon by andrew roberts</li> 
+              <li>alexander hamilton, titan by ron chernow</li> 
+              <li>the patriarch by david nasaw</li> 
+              <li>the theodore roosevelt trilogy by edmund morris</li> 
+              <li>total recall by arnold schwarzenegger</li>
+              <li>the singapore story by lee kuan yew</li> 
+              <li>hpmor by eliezer yudkowsky</li>   
+            </ul>
+        
+            <br>
+        
+            <h4>@sharvenium everywhere</h4>        
             <button onclick="toggleBio()" class="bio-toggle">less ▲</button>
         </div>
     </div>
@@ -271,47 +298,60 @@
     const isAuthenticated = await auth0Client.isAuthenticated();
     if (!isAuthenticated) return;
 
-    // Show live indicator
-    showLiveIndicator(true);
-    
-    // Clear previous timeouts
     clearTimeout(typingTimeout);
     clearTimeout(liveIndicatorTimeout);
-    
-    // Set new timeouts
+
+    // update firebase that user is writing
+    const db = firebase.database();
+    db.ref('typingStatus').set({ 
+        isWriting: true,
+        timestamp: Date.now()
+    });
+
     typingTimeout = setTimeout(async () => {
         const content = event.target.value.trim();
         if (!content) {
             if (currentDraft) {
-                const db = firebase.database();
                 await db.ref(`posts/${currentDraft}`).remove();
                 currentDraft = null;
             }
+            // once user is done, set isWriting = false
+            db.ref('typingStatus').set({ 
+                isWriting: false,
+                timestamp: Date.now()
+            });
             return;
         }
 
-        // Only update the current draft, don't create new ones while typing
-        const db = firebase.database();
         if (!currentDraft) {
             const ref = await db.ref('posts').push({
-                content: content,
+                content,
                 timestamp: Date.now(),
                 isDraft: true
             });
             currentDraft = ref.key;
         } else {
             await db.ref(`posts/${currentDraft}`).update({
-                content: content,
+                content,
                 timestamp: Date.now()
             });
         }
+        // user done drafting, set isWriting = false
+        db.ref('typingStatus').set({ 
+            isWriting: false,
+            timestamp: Date.now()
+        });
     }, 300);
 
-    // Hide live indicator after 3 seconds of no typing
+    // if user hasn't typed for 3s, we also consider them done
     liveIndicatorTimeout = setTimeout(() => {
-        showLiveIndicator(false);
+        db.ref('typingStatus').set({ 
+            isWriting: false,
+            timestamp: Date.now()
+        });
     }, 3000);
 }
+
         // Rest of your existing functions (initAuth0, initFirebase, etc.) remain the same
         async function initAuth0() {
     try {
@@ -387,6 +427,15 @@ async function logout() {
         }
     });
 }
+function setupTypingListener() {
+    const db = firebase.database();
+    db.ref('typingStatus').on('value', snapshot => {
+        const status = snapshot.val();
+        if (!status) return;
+        showLiveIndicator(status.isWriting);
+    });
+}
+
 
 async function publishPost(final = false) {
     try {
@@ -521,6 +570,8 @@ document.getElementById('logoutBtn').onclick = logout;
         window.onload = async () => {
             await initAuth0();
             initFirebase();
+            setupTypingListener();
+
         };
     </script>
 </body>
