@@ -287,41 +287,51 @@
 
     // presence
     function initPresence() {
-      const db = firebase.database();
-      const userRef = db.ref('presence/sharvesh');
-      const offlineState = {
-        state: 'offline',
-        lastChanged: firebase.database.ServerValue.TIMESTAMP
-      };
-      const onlineState = {
-        state: 'online',
-        lastChanged: firebase.database.ServerValue.TIMESTAMP
-      };
+  const db = firebase.database();
+  const userRef = db.ref('presence/sharvesh');
+  const offlineState = {
+    state: 'offline',
+    lastChanged: firebase.database.ServerValue.TIMESTAMP
+  };
+  const onlineState = {
+    state: 'online',
+    lastChanged: firebase.database.ServerValue.TIMESTAMP
+  };
 
-      db.ref('.info/connected').on('value', snap => {
-        if (!snap.val()) {
-          userRef.set(offlineState);
-          return;
-        }
-        userRef.onDisconnect().set(offlineState).then(() => {
-          userRef.set(onlineState);
-        });
-      });
-
-      userRef.on('value', snapshot => {
-        const val = snapshot.val();
-        if (!val) return;
-        const presenceEl = document.getElementById('presenceIndicator');
-        const isOnline = val.state === 'online';
-        const lastChanged = new Date(val.lastChanged).toLocaleString();
-        if (isOnline) {
-          presenceEl.textContent = 'online rn';
-        } else {
-          presenceEl.textContent = `was last seen at ${lastChanged}`;
+  // Listen to auth state changes
+  auth0Client.isAuthenticated().then(isAuthenticated => {
+    if (isAuthenticated) {
+      auth0Client.getUser().then(user => {
+        if (user.email === "sharvenium@gmail.com") {
+          // Only set up presence tracking if authenticated as the correct user
+          db.ref('.info/connected').on('value', snap => {
+            if (!snap.val()) {
+              userRef.set(offlineState);
+              return;
+            }
+            userRef.onDisconnect().set(offlineState).then(() => {
+              userRef.set(onlineState);
+            });
+          });
         }
       });
     }
+  });
 
+  // Keep the presence indicator updated for all viewers
+  userRef.on('value', snapshot => {
+    const val = snapshot.val();
+    if (!val) return;
+    const presenceEl = document.getElementById('presenceIndicator');
+    const isOnline = val.state === 'online';
+    const lastChanged = new Date(val.lastChanged).toLocaleString();
+    if (isOnline) {
+      presenceEl.textContent = 'online rn';
+    } else {
+      presenceEl.textContent = `was last seen at ${lastChanged}`;
+    }
+  });
+}
     function initDraftViewer() {
       const db = firebase.database();
       db.ref('drafts/sharvesh').on('value', snapshot => {
