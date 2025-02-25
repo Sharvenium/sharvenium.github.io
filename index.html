@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>sharvesh's posts</title>
+  <title>sharvesh</title>
   <!-- Core dependencies -->
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -11,130 +11,181 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
   <!-- Settings and Analytics -->
   <link rel="icon" type="image/jpg" href="catpfp2.jpg">
   <style>
     :root {
-      --bg: #ffffff; /* White background */
-      --text: #001f3f; /* Dark navy blue text */
-      --subtle: #e0e0e0; /* Light gray for borders */
-      --accent: #666666; /* Muted gray for secondary text */
-      --primary: #001f3f; /* Navy blue for primary elements */
-      --secondary-bg: #f9f9f9; /* Slightly off-white for cards */
-      --card-shadow: rgba(0, 0, 0, 0.05); /* Subtle shadow */
-      --hover: rgba(0, 31, 63, 0.1); /* Hover effect */
+      /* Light theme colors */
+      --bg: #ffffff;
+      --text: #141414;
+      --subtle: #e2e2e2;
+      --accent: #666666;
+      --primary: #1c1c1c;
+      --secondary: #4338ca;
+      --secondary-light: rgba(67, 56, 202, 0.08);
+      --secondary-bg: #f9f9fb;
+      --card-shadow: rgba(0, 0, 0, 0.03);
+      --hover: rgba(0, 0, 0, 0.05);
+      --code-bg: #f7f7f7;
+      --border: #eaeaea;
+      --card-bg: #ffffff;
+      
+      /* Font settings */
+      --body-font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --mono-font: 'JetBrains Mono', monospace;
     }
+
     [data-theme="dark"] {
-      --bg: #001f3f; /* Navy blue background */
-      --text: #ffffff; /* White text */
-      --subtle: #333333; /* Dark gray for borders */
-      --accent: #c0c0c0; /* Silver for secondary text */
-      --primary: #c0c0c0; /* Silver for primary elements */
-      --secondary-bg: #002b4d; /* Darker navy for cards */
-      --card-shadow: rgba(0, 0, 0, 0.2); /* Slightly darker shadow */
-      --hover: rgba(192, 192, 192, 0.15); /* Hover effect */
+      --bg: #0f0f0f;
+      --text: #f0f0f0;
+      --subtle: #262626;
+      --accent: #9e9e9e;
+      --primary: #ffffff;
+      --secondary: #6366f1;
+      --secondary-light: rgba(99, 102, 241, 0.15);
+      --secondary-bg: #171717;
+      --card-shadow: rgba(0, 0, 0, 0.2);
+      --hover: rgba(255, 255, 255, 0.05);
+      --code-bg: #1e1e1e;
+      --border: #262626;
+      --card-bg: #171717;
     }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+
+    html {
+      font-size: 16px;
+    }
+
     body {
-      font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
-      max-width: 650px;
+      font-family: var(--body-font);
+      max-width: 640px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 32px 24px;
       line-height: 1.6;
       background: var(--bg);
       color: var(--text);
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
+      -webkit-font-smoothing: antialiased;
     }
+
     body.live-mode {
       margin-top: 40px;
     }
-    h1, h2, h3, h4 {
-      font-family: 'Merriweather', serif;
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
     }
-    .header {
+    
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--subtle);
+      border-radius: 4px;
+      border: 2px solid var(--bg);
+    }
+    
+    /* Header styling */
+    .site-header {
+      position: relative;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .site-title {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+    }
+    
+    .header-controls {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--subtle);
-      background: linear-gradient(to right, var(--bg), var(--secondary-bg));
     }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    h1 {
-      font-size: 24px;
-      font-weight: 500;
-      letter-spacing: -0.5px;
-    }
+    
     .presence {
       font-size: 14px;
       color: var(--accent);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
+    
     .online-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background-color: #4CAF50;
+      background-color: #10b981;
       display: none;
     }
+    
     .online-dot.active {
       display: block;
     }
+    
     .controls {
       display: flex;
       gap: 8px;
       align-items: center;
     }
+    
     button {
       background: none;
-      border: none;
+      border: 1px solid var(--border);
       color: var(--text);
       cursor: pointer;
-      opacity: 0.7;
+      padding: 6px 12px;
+      border-radius: 6px;
       transition: all 0.2s;
-      padding: 6px 8px;
-      border-radius: 4px;
+      font-family: var(--body-font);
+      font-size: 14px;
+      font-weight: 500;
     }
+    
     button:hover {
-      opacity: 1;
       background: var(--hover);
     }
-    .login-section {
-      margin-left: 8px;
+    
+    .login-section button {
+      color: var(--secondary);
+      border-color: var(--secondary-light);
+      background: var(--secondary-light);
     }
-    #loginBtn {
-      opacity: 0.3;
-    }
+    
+    /* Search functionality */
     .search-container {
       position: relative;
       display: none;
     }
+    
     #searchInput {
-      border: 1px solid var(--subtle);
-      padding: 6px 28px 6px 8px;
+      border: 1px solid var(--border);
+      padding: 6px 28px 6px 12px;
       font-size: 14px;
+      font-family: var(--body-font);
       background: var(--bg);
       color: var(--text);
-      border-radius: 4px;
-      width: 180px;
+      border-radius: 6px;
+      width: 200px;
     }
+    
     #searchInput:focus {
       outline: none;
-      border-color: var(--primary);
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 1px var(--secondary-light);
     }
+    
     .clear-search {
       position: absolute;
       right: 8px;
@@ -144,265 +195,384 @@
       border: none;
       padding: 0;
       cursor: pointer;
-      font-size: 12px;
-      color: var(--accent);
-      opacity: 0.7;
-    }
-    .stats-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 16px;
       font-size: 14px;
       color: var(--accent);
-      padding: 8px 0;
     }
+    
+    /* Bio section styling */
     .bio {
-      margin-bottom: 24px;
-      padding: 16px;
-      border: 1px solid var(--subtle);
-      border-radius: 4px;
+      margin-bottom: 32px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
       background: var(--secondary-bg);
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
     }
+    
     .bio a {
-      color: var(--primary);
+      color: var(--secondary);
       text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s;
     }
+    
     .bio a:hover {
       text-decoration: underline;
     }
+    
     .bio-preview {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-size: 15px;
     }
+    
     .bio ul {
       list-style-type: none;
       margin: 16px 0;
       padding: 0;
+      columns: 2;
+      column-gap: 24px;
     }
+    
     .bio li {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       position: relative;
-      padding-left: 16px;
+      padding-left: 18px;
+      break-inside: avoid;
+      font-size: 14px;
     }
+    
     .bio li::before {
       content: "→";
       position: absolute;
       left: 0;
-      color: var(--primary);
+      color: var(--secondary);
+      font-weight: 500;
     }
+    
     .bio h2 {
-      font-size: 18px;
-      margin-top: 16px;
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-    .bio h4 {
       font-size: 16px;
-      margin-top: 16px;
-      font-weight: 500;
-      opacity: 0.8;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
     }
+    
+    .bio h4 {
+      font-size: 14px;
+      margin-top: 16px;
+      font-weight: 400;
+      color: var(--accent);
+    }
+    
     .bio-toggle {
       background: none;
       border: none;
-      color: var(--primary);
+      color: var(--secondary);
       cursor: pointer;
       padding: 0;
       font-size: 14px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      font-weight: 500;
     }
+    
+    /* Stats row styling */
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: var(--accent);
+      padding: 0 0 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .stats-left, .stats-right {
+      display: flex;
+      gap: 16px;
+    }
+    
+    /* Post editor styling */
     #postContainer {
-      margin-top: 24px;
-      margin-bottom: 32px;
+      margin: 32px 0 24px;
       display: none;
     }
+    
     textarea {
       width: 100%;
-      height: 150px;
+      height: 160px;
       resize: vertical;
-      padding: 12px;
-      font-family: inherit;
-      font-size: inherit;
-      border: 1px solid var(--subtle);
+      padding: 14px;
+      font-family: var(--mono-font);
+      font-size: 14px;
+      border: 1px solid var(--border);
       background: var(--bg);
       color: var(--text);
-      border-radius: 4px;
+      border-radius: 8px;
       transition: all 0.2s ease;
     }
+    
     textarea:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--hover);
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 1px var(--secondary-light);
     }
+    
     .post-actions {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 8px;
+      margin-top: 12px;
     }
+    
+    .formatting-hints {
+      color: var(--accent);
+      font-size: 14px;
+    }
+    
     .post-button {
       background-color: var(--primary);
-      color: white;
+      color: var(--bg);
       border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
+      padding: 8px 16px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 14px;
-      opacity: 1;
+      font-weight: 500;
     }
+    
     .post-button:hover {
       opacity: 0.9;
     }
+    
+    /* Live preview styling */
     .draft-container {
-      margin-top: 16px;
+      margin-top: 20px;
       padding: 16px;
-      border: 1px dashed var(--subtle);
-      border-radius: 4px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
       background: var(--secondary-bg);
-      opacity: 0.8;
     }
+    
     .draft-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: var(--accent);
-    }
-    #liveDraftPreview {
-      min-height: 20px;
-    }
-    .post {
-      padding: 20px;
-      margin-bottom: 24px;
-      border: 1px solid var(--subtle);
-      border-radius: 4px;
-      background: var(--secondary-bg);
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 4px var(--card-shadow);
-    }
-    .post:hover {
-      box-shadow: 0 4px 8px var(--card-shadow);
-    }
-    .post-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
       font-size: 14px;
+      color: var(--accent);
     }
+    
+    #liveDraftPreview {
+      min-height: 20px;
+      font-size: 15px;
+    }
+    
+    /* Posts styling */
+    .post {
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card-bg);
+      transition: all 0.2s ease;
+    }
+    
+    .post:hover {
+      box-shadow: 0 2px 8px var(--card-shadow);
+    }
+    
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    
     .timestamp {
       color: var(--accent);
     }
+    
     .content {
+      font-size: 15px;
       line-height: 1.7;
     }
+    
     .content p {
-      margin-bottom: 1em;
+      margin-bottom: 1.2em;
     }
+    
     .content a {
-      color: var(--primary);
+      color: var(--secondary);
       text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: all 0.2s;
     }
+    
     .content a:hover {
-      text-decoration: underline;
+      border-bottom: 1px solid var(--secondary);
     }
+    
     .content pre {
       background: var(--code-bg);
-      padding: 12px;
-      border-radius: 4px;
+      padding: 14px;
+      border-radius: 6px;
       overflow-x: auto;
-      margin: 1em 0;
+      margin: 1.2em 0;
     }
+    
     .content code {
-      font-family: 'SF Mono', Menlo, Monaco, monospace;
-      font-size: 0.9em;
+      font-family: var(--mono-font);
+      font-size: 13px;
     }
+    
     .content img {
       max-width: 100%;
-      border-radius: 4px;
-    }
-    .content blockquote {
-      border-left: 3px solid var(--primary);
-      padding-left: 16px;
-      color: var(--accent);
+      border-radius: 6px;
       margin: 1em 0;
     }
+    
+    .content blockquote {
+      border-left: 2px solid var(--secondary);
+      padding: 0.5em 0 0.5em 1.2em;
+      margin: 1.5em 0;
+      color: var(--accent);
+    }
+    
+    .content h1, .content h2, .content h3, .content h4 {
+      margin: 1.5em 0 0.75em;
+      letter-spacing: -0.3px;
+    }
+    
+    .content h1 {
+      font-size: 1.6em;
+    }
+    
+    .content h2 {
+      font-size: 1.4em;
+    }
+    
+    .content h3 {
+      font-size: 1.2em;
+    }
+    
+    .content h4 {
+      font-size: 1.1em;
+    }
+    
+    .content ul, .content ol {
+      margin: 1em 0 1em 1.2em;
+    }
+    
+    .content li {
+      margin-bottom: 0.5em;
+    }
+    
+    /* Notifications */
     .toast {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background: var(--primary);
+      background: var(--secondary);
       color: white;
-      padding: 12px 24px;
+      padding: 12px 20px;
       font-size: 14px;
-      border-radius: 4px;
+      border-radius: 6px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       display: none;
       animation: slideIn 0.3s ease-out;
       z-index: 100;
     }
+    
     @keyframes slideIn {
       from { transform: translateY(100%); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
+    
+    /* Live status bar */
     .live-bar {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      background: var(--primary);
-      color: white;
+      background: var(--secondary-light);
+      color: var(--secondary);
       text-align: center;
       padding: 8px;
-      font-weight: 500;
+      backdrop-filter: blur(5px);
+      border-bottom: 1px solid var(--border);
       display: none;
-      animation: pulse 3s infinite;
       z-index: 1000;
+      font-size: 14px;
+      font-weight: 500;
     }
+    
     .live-dot {
       display: inline-block;
-      width: 10px;
-      height: 10px;
-      background-color: #ff3b30;
+      width: 8px;
+      height: 8px;
+      background-color: var(--secondary);
       border-radius: 50%;
       margin-right: 8px;
       animation: blink 1.5s infinite;
     }
+    
     @keyframes blink {
       0% { opacity: 0.4; }
       50% { opacity: 1; }
       100% { opacity: 0.4; }
     }
-    @keyframes pulse {
-      0% { background: var(--primary); }
-      50% { background: lighten(var(--primary), 10%); }
-      100% { background: var(--primary); }
-    }
+    
+    /* Empty state */
     .empty-state {
       text-align: center;
       padding: 40px 0;
       color: var(--accent);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      margin: 24px 0;
     }
-    @media (max-width: 700px) {
+    
+    /* Mobile responsive adjustments */
+    @media (max-width: 640px) {
       body {
-        padding: 16px;
+        padding: 20px 16px;
       }
-      .header-left {
+      
+      .header-controls {
         flex-direction: column;
         align-items: flex-start;
-        gap: 4px;
+        gap: 16px;
       }
+      
+      .controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
       .stats-row {
         flex-direction: column;
         gap: 8px;
       }
+      
+      .post {
+        padding: 16px;
+      }
+      
+      .bio ul {
+        columns: 1;
+      }
+      
       #searchInput {
-        width: 140px;
+        width: 100%;
+      }
+      
+      .search-container {
+        width: 100%;
       }
     }
   </style>
@@ -410,37 +580,32 @@
 <body>
   <!-- Live writing indicator -->
   <div class="live-bar" id="liveBar">
-    <span class="live-dot"></span> sharvesh is writing right now...
+    <span class="live-dot"></span> sharvesh is writing...
   </div>
 
   <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <h1>sharvesh's posts</h1>
+  <header class="site-header">
+    <h1 class="site-title">sharvesh's notes</h1>
+    
+    <div class="header-controls">
       <div class="presence" id="presenceIndicator">
         <span class="online-dot" id="onlineDot"></span>
         <span id="presenceText"></span>
       </div>
-    </div>
-    <div class="controls">
-      <button onclick="toggleSearch()" title="Search posts">🔍</button>
-      <div class="search-container" id="searchContainer">
-        <input type="text" id="searchInput" placeholder="search posts..." onkeyup="searchPosts(this.value)">
-        <button class="clear-search" id="clearSearch" onclick="clearSearch()" title="Clear search">✕</button>
+      <div class="controls">
+        <button onclick="toggleSearch()" title="Search posts">Search</button>
+        <div class="search-container" id="searchContainer">
+          <input type="text" id="searchInput" placeholder="search posts..." onkeyup="searchPosts(this.value)">
+          <button class="clear-search" id="clearSearch" onclick="clearSearch()" title="Clear search">✕</button>
+        </div>
+        <button onclick="toggleTheme()" id="themeToggle" title="Toggle theme">🌙</button>
+        <div class="login-section">
+          <button id="loginBtn" title="Admin login">Login</button>
+          <button id="logoutBtn" style="display:none" title="Logout">Logout</button>
+        </div>
       </div>
-      <button onclick="toggleTheme()" id="themeToggle" title="Toggle theme">🌙</button>
-      <div class="login-section">
-        <button id="loginBtn" title="Admin login">login</button>
-        <button id="logoutBtn" style="display:none" title="Logout">logout</button>
-      </div>
     </div>
-  </div>
-
-  <!-- Stats row -->
-  <div class="stats-row">
-    <span id="totalPosts">total posts: 0</span>
-    <span id="lastPostDate">last post: never</span>
-  </div>
+  </header>
 
   <!-- Bio section -->
   <div class="bio">
@@ -465,6 +630,17 @@
     </div>
   </div>
 
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stats-left">
+      <span id="totalPosts">total posts: 0</span>
+      <span id="todayPosts">posts today: 0</span>
+    </div>
+    <div class="stats-right">
+      <span id="wordCount">total words: 0</span>
+    </div>
+  </div>
+
   <!-- Admin post editor -->
   <div id="postContainer">
     <textarea id="postInput" placeholder="what's on your mind? markdown supported..." oninput="handleTyping(event)"></textarea>
@@ -477,7 +653,7 @@
     <!-- Live draft preview for admin -->
     <div class="draft-container">
       <div class="draft-header">
-        <span>live preview</span>
+        <span>preview</span>
         <span id="saveStatus"></span>
       </div>
       <div id="liveDraftPreview"></div>
@@ -499,6 +675,7 @@
     let typingTimeout = null;
     let liveIndicatorTimeout = null;
     let searchActive = false;
+    let wordCount = 0;
 
     // Initialize theme
     if (isDark) {
@@ -555,6 +732,8 @@
     function showLiveIndicator(show) {
       const liveBar = document.getElementById('liveBar');
       liveBar.style.display = show ? 'block' : 'none';
+      
+      // Adjust body
       document.body.classList.toggle('live-mode', show);
     }
 
@@ -563,6 +742,7 @@
       const db = firebase.database();
       const userRef = db.ref('presence/sharvesh');
       
+      // Set up states
       const offlineState = {
         state: 'offline',
         lastChanged: firebase.database.ServerValue.TIMESTAMP
@@ -573,15 +753,18 @@
         lastChanged: firebase.database.ServerValue.TIMESTAMP
       };
 
+      // Check authentication for presence tracking
       auth0Client.isAuthenticated().then(isAuthenticated => {
         if (isAuthenticated) {
           auth0Client.getUser().then(user => {
             if (user.email === "sharvenium@gmail.com") {
+              // Set up presence tracking for admin
               db.ref('.info/connected').on('value', snap => {
                 if (!snap.val()) {
                   userRef.set(offlineState);
                   return;
                 }
+                
                 userRef.onDisconnect().set(offlineState).then(() => {
                   userRef.set(onlineState);
                 });
@@ -591,6 +774,7 @@
         }
       });
 
+      // Keep the presence indicator updated for all viewers
       userRef.on('value', snapshot => {
         const val = snapshot.val();
         if (!val) return;
@@ -626,11 +810,15 @@
           return;
         }
         
+        // Parse content with markdown
         draftEl.innerHTML = marked.parse(data.content);
+        
+        // Highlight code blocks
         draftEl.querySelectorAll('pre code').forEach(block => {
           hljs.highlightElement(block);
         });
         
+        // Update save status
         const now = new Date();
         const timestamp = new Date(data.timestamp);
         const diff = Math.floor((now - timestamp) / 1000);
@@ -648,25 +836,30 @@
       const isAuthenticated = await auth0Client.isAuthenticated();
       if (!isAuthenticated) return;
 
-      const content = event.target.value;
-      const charCount = content.length;
-      document.getElementById('charCount').textContent = `${charCount} characters`;
+      // Update character count
+      const charCount = document.getElementById('charCount');
+      charCount.textContent = `${event.target.value.length} characters`;
 
+      // Clear previous timeouts
       clearTimeout(typingTimeout);
       clearTimeout(liveIndicatorTimeout);
 
+      // Set typing status
       const db = firebase.database();
       db.ref('typingStatus').set({ isWriting: true, timestamp: Date.now() });
 
+      // Update draft content
       const newContent = event.target.value;
       db.ref('drafts/sharvesh').set({ 
         content: newContent, 
         timestamp: Date.now() 
       });
 
+      // Set timeout for draft updates
       typingTimeout = setTimeout(async () => {
         const content = newContent.trim();
         
+        // Clean up if empty
         if (!content) {
           db.ref('drafts/sharvesh').remove();
           if (currentDraft) {
@@ -677,6 +870,7 @@
           return;
         }
 
+        // Update or create draft post
         if (!currentDraft) {
           const ref = await db.ref('posts').push({
             content,
@@ -691,9 +885,11 @@
           });
         }
         
+        // Turn off typing status
         db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
       }, 1000);
 
+      // Set timeout for hiding live indicator
       liveIndicatorTimeout = setTimeout(() => {
         db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
       }, 5000);
@@ -720,6 +916,7 @@
           }
         });
 
+        // Handle auth callback if present
         if (window.location.search.includes("code=")) {
           await auth0Client.handleRedirectCallback();
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -764,10 +961,12 @@
             return;
           }
           
+          // Not authorized
           await logout();
           showToast('Access denied');
         }
         
+        // Default state
         document.getElementById('loginBtn').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'none';
         document.getElementById('postContainer').style.display = 'none';
@@ -788,6 +987,7 @@
     // Logout and cleanup
     async function logout() {
       try {
+        // Clean up draft data
         const db = firebase.database();
         db.ref('drafts/sharvesh').remove();
         
@@ -796,8 +996,10 @@
           currentDraft = null;
         }
         
+        // Set status to offline
         db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
         
+        // Logout from Auth0
         await auth0Client.logout({
           logoutParams: {
             returnTo: window.location.origin
@@ -830,24 +1032,29 @@
         const db = firebase.database();
         
         if (final) {
+          // Clean up drafts
           db.ref('drafts/sharvesh').remove();
           
           if (currentDraft) {
             await db.ref(`posts/${currentDraft}`).remove();
-            currentDraft = null;
+            currentDraft = null
           }
           
+          // Create final post
           await db.ref('posts').push({
             content,
             timestamp: Date.now(),
-            isDraft: false
+            isDraft: false,
+            wordCount: countWords(content)
           });
           
+          // Reset input and UI
           input.value = '';
           document.getElementById('charCount').textContent = '0 characters';
           document.getElementById('liveDraftPreview').innerHTML = '';
           document.getElementById('saveStatus').textContent = '';
           
+          // Reset status
           showToast('Posted successfully');
           showLiveIndicator(false);
           db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
@@ -858,19 +1065,49 @@
       }
     }
 
+    // Count words in text
+    function countWords(text) {
+      return text.trim().split(/\s+/).length;
+    }
+
+    // Delete a post
+    async function deletePost(postId) {
+      try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        const user = await auth0Client.getUser();
+        
+        if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
+          showToast('Access denied');
+          return;
+        }
+        
+        if (!confirm('Delete this post?')) return;
+        
+        const db = firebase.database();
+        await db.ref(`posts/${postId}`).remove();
+        showToast('Post deleted');
+      } catch (e) {
+        console.error("Delete error:", e);
+        showToast('Error deleting post');
+      }
+    }
+
     // Search posts
     function searchPosts(query) {
       query = query.toLowerCase();
       
+      // If empty query, show all posts
       if (!query) {
         renderPosts(posts);
         return;
       }
       
+      // Filter posts by content
       const filtered = posts.filter(([key, post]) => 
         post.content.toLowerCase().includes(query)
       );
       
+      // Render filtered posts
       renderPosts(filtered);
     }
 
@@ -885,22 +1122,30 @@
       const user = isAuthenticated ? await auth0Client.getUser() : null;
       const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
       
+      // Format date nicely
       const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+      const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
       const formattedDate = `${dateStr}, ${timeStr}`;
       
+      // Create post HTML
       postEl.innerHTML = `
         <div class="post-header">
           <div class="timestamp">${formattedDate}</div>
-          ${isAdmin ? `<button onclick="deletePost('${key}')" title="Delete post">delete</button>` : ''}
+          ${isAdmin ? `
+          <div class="post-actions">
+            <button onclick="deletePost('${key}')" title="Delete post">delete</button>
+          </div>
+          ` : ''}
         </div>
         <div class="content">${marked.parse(post.content)}</div>
       `;
 
+      // Process code blocks for syntax highlighting
       postEl.querySelectorAll('pre code').forEach(block => {
         hljs.highlightElement(block);
       });
       
+      // Add post to timeline
       timeline.appendChild(postEl);
     }
 
@@ -918,11 +1163,15 @@
           return;
         }
 
+        // Process posts - filter drafts and sort by timestamp
         posts = Object.entries(postsData)
           .filter(([, post]) => !post.isDraft)
           .sort(([, a], [, b]) => b.timestamp - a.timestamp);
 
+        // Calculate stats
         updateStatsCount();
+        
+        // Render posts
         renderPosts(posts);
       });
     }
@@ -955,6 +1204,7 @@
         return;
       }
       
+      // Render each post
       postsToRender.forEach(postData => {
         renderPost(postData[0], postData[1], timeline);
       });
@@ -963,15 +1213,27 @@
     // Update stats counts
     function updateStatsCount() {
       const total = posts.length;
-      document.getElementById('totalPosts').textContent = `total posts: ${total}`;
       
-      if (total > 0) {
-        const lastPost = posts[0][1];
-        const lastDate = new Date(lastPost.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
-        document.getElementById('lastPostDate').textContent = `last post: ${lastDate}`;
-      } else {
-        document.getElementById('lastPostDate').textContent = 'last post: never';
-      }
+      // Count today's posts
+      const todayStr = new Date().toDateString();
+      const todayCount = posts.filter(([, p]) => 
+        new Date(p.timestamp).toDateString() === todayStr
+      ).length;
+      
+      // Calculate total word count
+      let totalWords = 0;
+      posts.forEach(([, post]) => {
+        if (post.wordCount) {
+          totalWords += post.wordCount;
+        } else {
+          totalWords += countWords(post.content);
+        }
+      });
+      
+      // Update UI
+      document.getElementById('totalPosts').textContent = `total posts: ${total}`;
+      document.getElementById('todayPosts').textContent = `posts today: ${todayCount}`;
+      document.getElementById('wordCount').textContent = `total words: ${totalWords}`;
     }
 
     // Toggle between light and dark theme
@@ -1002,7 +1264,7 @@
           const el = document.getElementById(`post-${postId}`);
           if (el) {
             el.scrollIntoView({ behavior: 'smooth' });
-            el.style.boxShadow = '0 0 0 2px var(--primary)';
+            el.style.boxShadow = '0 0 0 2px var(--secondary)';
             setTimeout(() => {
               el.style.boxShadow = '';
             }, 2000);
@@ -1014,20 +1276,24 @@
     // Add keyboard shortcuts
     function setupKeyboardShortcuts() {
       document.addEventListener('keydown', async e => {
+        // Only process if user is admin
         const isAuthenticated = await auth0Client.isAuthenticated();
         const user = isAuthenticated ? await auth0Client.getUser() : null;
         const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
         
+        // Cmd+Enter to publish
         if (isAdmin && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
           publishPost(true);
           e.preventDefault();
         }
         
+        // Escape to clear search
         if (e.key === 'Escape' && searchActive) {
           clearSearch();
           toggleSearch();
         }
         
+        // / to focus search
         if (e.key === '/' && !searchActive && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
           toggleSearch();
           e.preventDefault();
