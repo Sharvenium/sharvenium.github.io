@@ -10,46 +10,69 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/tokyo-night.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
   <!-- Settings and Analytics -->
   <link rel="icon" type="image/jpg" href="catpfp2.jpg">
   <style>
     :root {
       /* Light theme colors */
       --bg: #ffffff;
-      --text: #141414;
-      --subtle: #e2e2e2;
+      --text: #111111;
+      --text-secondary: #444444;
+      --subtle: #f2f2f2;
       --accent: #666666;
       --primary: #1c1c1c;
-      --secondary: #4338ca;
-      --secondary-light: rgba(67, 56, 202, 0.08);
-      --secondary-bg: #f9f9fb;
+      --secondary: #4f46e5;
+      --secondary-hover: #4338ca;
+      --secondary-light: rgba(79, 70, 229, 0.08);
+      --secondary-bg: #f9f9ff;
       --card-shadow: rgba(0, 0, 0, 0.03);
       --hover: rgba(0, 0, 0, 0.05);
       --code-bg: #f7f7f7;
       --border: #eaeaea;
       --card-bg: #ffffff;
+      --toast-bg: #4f46e5;
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.1);
+      --error: #ef4444;
+      --error-light: rgba(239, 68, 68, 0.1);
+      --highlight: #fff8e6;
+      --kbd-bg: #f5f5f5;
       
       /* Font settings */
       --body-font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-      --mono-font: 'JetBrains Mono', monospace;
+      --mono-font: 'JetBrains Mono', ui-monospace, monospace;
+      
+      /* Animation duration */
+      --transition-fast: 150ms;
+      --transition-normal: 250ms;
+      --transition-slow: 350ms;
     }
 
     [data-theme="dark"] {
-      --bg: #0f0f0f;
+      --bg: #0f0f11;
       --text: #f0f0f0;
-      --subtle: #262626;
+      --text-secondary: #c7c7c7;
+      --subtle: #1e1e24;
       --accent: #9e9e9e;
       --primary: #ffffff;
       --secondary: #6366f1;
+      --secondary-hover: #818cf8;
       --secondary-light: rgba(99, 102, 241, 0.15);
-      --secondary-bg: #171717;
+      --secondary-bg: #161621;
       --card-shadow: rgba(0, 0, 0, 0.2);
       --hover: rgba(255, 255, 255, 0.05);
-      --code-bg: #1e1e1e;
-      --border: #262626;
-      --card-bg: #171717;
+      --code-bg: #1a1a1a;
+      --border: #27272a;
+      --card-bg: #18181b;
+      --toast-bg: #6366f1;
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.1);
+      --error: #ef4444;
+      --error-light: rgba(239, 68, 68, 0.1);
+      --highlight: #2c2916;
+      --kbd-bg: #27272a;
     }
 
     * {
@@ -60,6 +83,7 @@
 
     html {
       font-size: 16px;
+      scroll-behavior: smooth;
     }
 
     body {
@@ -70,17 +94,24 @@
       line-height: 1.6;
       background: var(--bg);
       color: var(--text);
-      transition: all 0.2s ease;
+      transition: background var(--transition-normal) ease, color var(--transition-normal) ease;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body.live-mode {
       margin-top: 40px;
     }
     
+    ::selection {
+      background: var(--secondary-light);
+      color: var(--secondary);
+    }
+    
     /* Scrollbar styling */
     ::-webkit-scrollbar {
       width: 8px;
+      height: 8px;
     }
     
     ::-webkit-scrollbar-track {
@@ -91,6 +122,11 @@
       background: var(--subtle);
       border-radius: 4px;
       border: 2px solid var(--bg);
+      transition: background var(--transition-fast) ease;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
     }
     
     /* Header styling */
@@ -99,6 +135,7 @@
       margin-bottom: 32px;
       padding-bottom: 20px;
       border-bottom: 1px solid var(--border);
+      transition: border-color var(--transition-normal) ease;
     }
     
     .site-title {
@@ -106,6 +143,24 @@
       font-weight: 600;
       letter-spacing: -0.5px;
       margin-bottom: 16px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .site-title::after {
+      content: '';
+      position: absolute;
+      width: 25%;
+      height: 3px;
+      background: var(--secondary);
+      bottom: -5px;
+      left: 0;
+      border-radius: 3px;
+      transition: width var(--transition-normal) ease;
+    }
+    
+    .site-title:hover::after {
+      width: 100%;
     }
     
     .header-controls {
@@ -120,18 +175,34 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      transition: color var(--transition-normal) ease;
     }
     
     .online-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background-color: #10b981;
+      background-color: var(--success);
       display: none;
+      transition: all var(--transition-normal) ease;
     }
     
     .online-dot.active {
       display: block;
+      box-shadow: 0 0 0 3px var(--success-light);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 var(--success-light);
+      }
+      70% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
     }
     
     .controls {
@@ -147,14 +218,54 @@
       cursor: pointer;
       padding: 6px 12px;
       border-radius: 6px;
-      transition: all 0.2s;
+      transition: all var(--transition-fast) ease;
       font-family: var(--body-font);
       font-size: 14px;
       font-weight: 500;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    button::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, var(--secondary) 10%, transparent 10.01%);
+      background-repeat: no-repeat;
+      background-position: 50%;
+      transform: scale(10, 10);
+      opacity: 0;
+      transition: transform 0.5s, opacity 0.8s;
+    }
+    
+    button:active::after {
+      transform: scale(0, 0);
+      opacity: 0.15;
+      transition: 0s;
     }
     
     button:hover {
       background: var(--hover);
+      transform: translateY(-1px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button kbd {
+      font-family: var(--mono-font);
+      font-size: 11px;
+      background: var(--kbd-bg);
+      padding: 2px 4px;
+      border-radius: 3px;
+      margin-left: 4px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+      vertical-align: middle;
     }
     
     .login-section button {
@@ -163,27 +274,40 @@
       background: var(--secondary-light);
     }
     
+    .login-section button:hover {
+      background: var(--secondary-light);
+      border-color: var(--secondary);
+    }
+    
     /* Search functionality */
     .search-container {
       position: relative;
       display: none;
+      animation: fadeIn var(--transition-normal) ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     #searchInput {
       border: 1px solid var(--border);
-      padding: 6px 28px 6px 12px;
+      padding: 6px 32px 6px 12px;
       font-size: 14px;
       font-family: var(--body-font);
       background: var(--bg);
       color: var(--text);
       border-radius: 6px;
-      width: 200px;
+      width: 220px;
+      transition: all var(--transition-fast) ease;
+      -webkit-appearance: none;
     }
     
     #searchInput:focus {
       outline: none;
       border-color: var(--secondary);
-      box-shadow: 0 0 0 1px var(--secondary-light);
+      box-shadow: 0 0 0 2px var(--secondary-light);
     }
     
     .clear-search {
@@ -197,6 +321,53 @@
       cursor: pointer;
       font-size: 14px;
       color: var(--accent);
+      opacity: 0.7;
+      transition: opacity var(--transition-fast) ease;
+    }
+    
+    .clear-search:hover {
+      opacity: 1;
+      background: none;
+      transform: translateY(-50%);
+    }
+    
+    /* Keyboard shortcut help */
+    .keyboard-help {
+      display: none;
+      position: absolute;
+      z-index: 10;
+      top: 100%;
+      right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      width: 280px;
+      box-shadow: 0 4px 12px var(--card-shadow);
+      animation: fadeIn var(--transition-normal) ease;
+    }
+    
+    .keyboard-help h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    
+    .shortcut {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    
+    .shortcut kbd {
+      font-family: var(--mono-font);
+      background: var(--kbd-bg);
+      padding: 2px 5px;
+      border-radius: 4px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+      font-size: 12px;
     }
     
     /* Bio section styling */
@@ -206,18 +377,38 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       background: var(--secondary-bg);
-      transition: all 0.2s ease;
+      transition: all var(--transition-normal) ease;
+      position: relative;
+    }
+    
+    .bio:hover {
+      box-shadow: 0 2px 8px var(--card-shadow);
     }
     
     .bio a {
       color: var(--secondary);
       text-decoration: none;
       font-weight: 500;
-      transition: all 0.2s;
+      transition: all var(--transition-fast) ease;
+      position: relative;
     }
     
-    .bio a:hover {
-      text-decoration: underline;
+    .bio a::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background: var(--secondary);
+      bottom: -1px;
+      left: 0;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--transition-normal) ease;
+      opacity: 0.5;
+    }
+    
+    .bio a:hover::before {
+      transform: scaleX(1);
     }
     
     .bio-preview {
@@ -241,6 +432,7 @@
       padding-left: 18px;
       break-inside: avoid;
       font-size: 14px;
+      line-height: 1.5;
     }
     
     .bio li::before {
@@ -279,6 +471,20 @@
       font-weight: 500;
     }
     
+    .bio-toggle:hover {
+      transform: none;
+      background: transparent;
+    }
+    
+    .bio-full {
+      animation: slideDown var(--transition-normal) ease;
+    }
+    
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
     /* Stats row styling */
     .stats-row {
       display: flex;
@@ -288,6 +494,7 @@
       color: var(--accent);
       padding: 0 0 12px 0;
       border-bottom: 1px solid var(--border);
+      transition: border-color var(--transition-normal) ease;
     }
     
     .stats-left, .stats-right {
@@ -295,30 +502,92 @@
       gap: 16px;
     }
     
+    .stat-item {
+      position: relative;
+      cursor: default;
+      transition: color var(--transition-fast) ease;
+    }
+    
+    .stat-item:hover {
+      color: var(--text);
+    }
+    
+    .stat-value {
+      font-weight: 600;
+      color: var(--text);
+      transition: color var(--transition-normal) ease;
+    }
+    
     /* Post editor styling */
     #postContainer {
       margin: 32px 0 24px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--secondary-bg);
+      position: relative;
       display: none;
+      transition: all var(--transition-normal) ease;
+    }
+    
+    #postContainer:focus-within {
+      box-shadow: 0 2px 8px var(--card-shadow);
+    }
+    
+    .editor-label {
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      background: var(--secondary-bg);
+      padding: 0 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--secondary);
+      border-radius: 4px;
+    }
+    
+    .editor-container {
+      position: relative;
     }
     
     textarea {
       width: 100%;
       height: 160px;
       resize: vertical;
-      padding: 14px;
+      padding: 16px;
       font-family: var(--mono-font);
       font-size: 14px;
+      line-height: 1.6;
       border: 1px solid var(--border);
       background: var(--bg);
       color: var(--text);
       border-radius: 8px;
-      transition: all 0.2s ease;
+      transition: all var(--transition-fast) ease;
+      -webkit-appearance: none;
     }
     
     textarea:focus {
       outline: none;
       border-color: var(--secondary);
-      box-shadow: 0 0 0 1px var(--secondary-light);
+      box-shadow: 0 0 0 2px var(--secondary-light);
+    }
+    
+    .format-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    
+    .format-btn {
+      font-size: 13px;
+      padding: 4px 8px;
+      background: var(--bg);
+      color: var(--text-secondary);
+    }
+    
+    .format-btn:hover {
+      color: var(--secondary);
     }
     
     .post-actions {
@@ -331,21 +600,51 @@
     .formatting-hints {
       color: var(--accent);
       font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color var(--transition-normal) ease;
+    }
+    
+    .char-counter {
+      position: relative;
+      padding-right: 16px;
+    }
+    
+    .char-counter::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
     }
     
     .post-button {
       background-color: var(--primary);
       color: var(--bg);
-      border: none;
+      border: 1px solid var(--primary);
       padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 14px;
       font-weight: 500;
+      transition: all var(--transition-fast) ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     
     .post-button:hover {
       opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .post-button:active {
+      transform: translateY(0);
     }
     
     /* Live preview styling */
@@ -354,7 +653,8 @@
       padding: 16px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: var(--secondary-bg);
+      background: var(--bg);
+      transition: all var(--transition-normal) ease;
     }
     
     .draft-header {
@@ -364,25 +664,60 @@
       margin-bottom: 12px;
       font-size: 14px;
       color: var(--accent);
+      transition: color var(--transition-normal) ease;
+    }
+    
+    #saveStatus {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .save-icon {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--success);
+      animation: blink 1.5s infinite;
     }
     
     #liveDraftPreview {
       min-height: 20px;
       font-size: 15px;
+      line-height: 1.7;
     }
     
     /* Posts styling */
     .post {
-      padding: 20px;
-      margin-bottom: 24px;
+      padding: 24px;
+      margin-bottom: 32px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 12px;
       background: var(--card-bg);
-      transition: all 0.2s ease;
+      transition: all var(--transition-normal) ease;
+      position: relative;
+      overflow: hidden;
     }
     
     .post:hover {
-      box-shadow: 0 2px 8px var(--card-shadow);
+      box-shadow: 0 4px 16px var(--card-shadow);
+      border-color: var(--secondary-light);
+    }
+    
+    .post::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--secondary);
+      opacity: 0;
+      transition: opacity var(--transition-normal) ease;
+    }
+    
+    .post:hover::after {
+      opacity: 1;
     }
     
     .post-header {
@@ -395,11 +730,32 @@
     
     .timestamp {
       color: var(--accent);
+      transition: color var(--transition-normal) ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+    
+    .post-actions button {
+      padding: 4px 8px;
+      font-size: 13px;
+      opacity: 0.7;
+      border-color: var(--error-light);
+      color: var(--error);
+      background: var(--error-light);
+    }
+    
+    .post-actions button:hover {
+      opacity: 1;
+      border-color: var(--error);
     }
     
     .content {
       font-size: 15px;
       line-height: 1.7;
+      color: var(--text);
+      transition: color var(--transition-normal) ease;
     }
     
     .content p {
@@ -409,8 +765,8 @@
     .content a {
       color: var(--secondary);
       text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: all 0.2s;
+      border-bottom: 1px solid var(--secondary-light);
+      transition: all var(--transition-fast) ease;
     }
     
     .content a:hover {
@@ -419,10 +775,27 @@
     
     .content pre {
       background: var(--code-bg);
-      padding: 14px;
-      border-radius: 6px;
+      padding: 16px;
+      border-radius: 8px;
       overflow-x: auto;
       margin: 1.2em 0;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    
+    .content pre::before {
+      content: attr(data-language);
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-size: 11px;
+      background: var(--secondary);
+      color: white;
+      padding: 2px 6px;
+      border-bottom-left-radius: 4px;
+      border-top-right-radius: 7px;
+      font-family: var(--mono-font);
+      opacity: 0.9;
     }
     
     .content code {
@@ -430,22 +803,34 @@
       font-size: 13px;
     }
     
+    .content :not(pre) > code {
+      background: var(--code-bg);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+    }
+    
     .content img {
       max-width: 100%;
-      border-radius: 6px;
-      margin: 1em 0;
+      border-radius: 8px;
+      margin: 1.2em 0;
+      border: 1px solid var(--border);
     }
     
     .content blockquote {
       border-left: 2px solid var(--secondary);
       padding: 0.5em 0 0.5em 1.2em;
       margin: 1.5em 0;
-      color: var(--accent);
+      color: var(--text-secondary);
+      background: var(--secondary-bg);
+      border-radius: 0 4px 4px 0;
     }
     
     .content h1, .content h2, .content h3, .content h4 {
       margin: 1.5em 0 0.75em;
       letter-spacing: -0.3px;
+      color: var(--text);
     }
     
     .content h1 {
@@ -472,24 +857,97 @@
       margin-bottom: 0.5em;
     }
     
+    .content mark {
+      background-color: var(--highlight);
+      padding: 2px 0;
+      border-radius: 2px;
+    }
+    
+    .content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2em 0;
+    }
+    
+    .content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5em 0;
+      font-size: 14px;
+    }
+    
+    .content th {
+      background: var(--secondary-bg);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .content td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .content tr:nth-child(even) {
+      background: var(--secondary-bg);
+    }
+    
+    /* Post action area */
+    .post-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--accent);
+    }
+    
+    .post-meta {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .word-count {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .share-post a {
+      color: var(--accent);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color var(--transition-fast) ease;
+    }
+    
+    .share-post a:hover {
+      color: var(--secondary);
+    }
+    
     /* Notifications */
     .toast {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--secondary);
+      bottom: 24px;
+      right: 24px;
+      background: var(--toast-bg);
       color: white;
-      padding: 12px 20px;
+      padding: 12px 16px;
       font-size: 14px;
       border-radius: 6px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       display: none;
-      animation: slideIn 0.3s ease-out;
+      animation: slideUp var(--transition-normal) ease;
       z-index: 100;
+      max-width: 260px;
     }
     
-    @keyframes slideIn {
-      from { transform: translateY(100%); opacity: 0; }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
     
@@ -504,11 +962,13 @@
       text-align: center;
       padding: 8px;
       backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
       border-bottom: 1px solid var(--border);
       display: none;
       z-index: 1000;
       font-size: 14px;
       font-weight: 500;
+      animation: slideDown var(--transition-normal) ease;
     }
     
     .live-dot {
@@ -535,6 +995,121 @@
       border: 1px dashed var(--border);
       border-radius: 8px;
       margin: 24px 0;
+      transition: all var(--transition-normal) ease;
+    }
+    
+    /* Loading indicator */
+    .loading {
+      display: flex;
+      justify-content: center;
+      padding: 32px 0;
+    }
+    
+    .loading-dots {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .loading-dots div {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--secondary);
+      animation: loadingDots 1.4s infinite ease-in-out both;
+    }
+    
+    .loading-dots div:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+    
+    .loading-dots div:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+    
+    @keyframes loadingDots {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    
+    /* Back to top button */
+    .back-to-top {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--secondary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      border: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition-normal) ease;
+      z-index: 90;
+    }
+    
+    .back-to-top.visible {
+      opacity: 0.9;
+      visibility: visible;
+    }
+    
+    .back-to-top:hover {
+      background: var(--secondary-hover);
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+    
+    .back-to-top svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    
+    /* MarkDown help popup */
+    .markdown-help {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--card-shadow);
+      padding: 16px;
+      width: 320px;
+      display: none;
+      z-index: 100;
+      animation: fadeIn var(--transition-normal) ease;
+    }
+    
+    .markdown-help h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    
+    .md-examples {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 12px;
+      font-size: 13px;
+      font-family: var(--mono-font);
+    }
+    
+    .md-examples .syntax {
+      color: var(--secondary);
+    }
+    
+    .md-examples .description {
+      color: var(--text-secondary);
     }
     
     /* Mobile responsive adjustments */
@@ -560,7 +1135,7 @@
       }
       
       .post {
-        padding: 16px;
+        padding: 20px;
       }
       
       .bio ul {
@@ -573,6 +1148,14 @@
       
       .search-container {
         width: 100%;
+      }
+      
+      .keyboard-help {
+        width: 240px;
+      }
+      
+      .markdown-help {
+        width: 280px;
       }
     }
   </style>
@@ -593,12 +1176,36 @@
         <span id="presenceText"></span>
       </div>
       <div class="controls">
-        <button onclick="toggleSearch()" title="Search posts">Search</button>
+        <button onclick="toggleSearch()" title="Search posts">Search <kbd>/</kbd></button>
         <div class="search-container" id="searchContainer">
           <input type="text" id="searchInput" placeholder="search posts..." onkeyup="searchPosts(this.value)">
           <button class="clear-search" id="clearSearch" onclick="clearSearch()" title="Clear search">✕</button>
         </div>
-        <button onclick="toggleTheme()" id="themeToggle" title="Toggle theme">🌙</button>
+        <button onclick="toggleTheme()" id="themeToggle" title="Toggle light/dark theme">🌙</button>
+        <button onclick="toggleKeyboardHelp()" id="keyboardHelpBtn" title="Keyboard shortcuts">⌨️</button>
+        <div class="keyboard-help" id="keyboardHelp">
+          <h3>Keyboard Shortcuts</h3>
+          <div class="shortcut">
+            <span>Search</span>
+            <kbd>/</kbd>
+          </div>
+          <div class="shortcut">
+            <span>Publish post</span>
+            <kbd>⌘</kbd> + <kbd>Enter</kbd>
+          </div>
+          <div class="shortcut">
+            <span>Close search/dialogs</span>
+            <kbd>Esc</kbd>
+          </div>
+          <div class="shortcut">
+            <span>Toggle theme</span>
+            <kbd>T</kbd>
+          </div>
+          <div class="shortcut">
+            <span>Back to top</span>
+            <kbd>Home</kbd>
+          </div>
+        </div>
         <div class="login-section">
           <button id="loginBtn" title="Admin login">Login</button>
           <button id="logoutBtn" style="display:none" title="Logout">Logout</button>
@@ -633,22 +1240,71 @@
   <!-- Stats row -->
   <div class="stats-row">
     <div class="stats-left">
-      <span id="totalPosts">total posts: 0</span>
-      <span id="todayPosts">posts today: 0</span>
+      <span class="stat-item" id="totalPosts">posts: <span class="stat-value">0</span></span>
+      <span class="stat-item" id="todayPosts">today: <span class="stat-value">0</span></span>
     </div>
     <div class="stats-right">
-      <span id="wordCount">total words: 0</span>
+      <span class="stat-item" id="wordCount">words: <span class="stat-value">0</span></span>
     </div>
   </div>
 
   <!-- Admin post editor -->
   <div id="postContainer">
-    <textarea id="postInput" placeholder="what's on your mind? markdown supported..." oninput="handleTyping(event)"></textarea>
+    <span class="editor-label">new post</span>
+    <div class="format-buttons">
+      <button class="format-btn" onclick="insertFormat('**', '**')" title="Bold">B</button>
+      <button class="format-btn" onclick="insertFormat('*', '*')" title="Italic">I</button>
+      <button class="format-btn" onclick="insertFormat('`', '`')" title="Inline Code">Code</button>
+      <button class="format-btn" onclick="insertFormat('> ', '')" title="Blockquote">Quote</button>
+      <button class="format-btn" onclick="insertFormat('- ', '')" title="List">List</button>
+      <button class="format-btn" onclick="insertFormat('[', '](url)')" title="Link">Link</button>
+      <button class="format-btn" onclick="insertFormat('# ', '')" title="Heading">H1</button>
+      <button class="format-btn" onclick="toggleMarkdownHelp()" title="Markdown Help">?</button>
+    </div>
+    <div class="editor-container">
+      <textarea id="postInput" placeholder="what's on your mind? markdown supported..." oninput="handleTyping(event)"></textarea>
+      <div class="markdown-help" id="markdownHelp">
+        <h3>Markdown Syntax</h3>
+        <div class="md-examples">
+          <div class="syntax"># Heading</div>
+          <div class="description">H1 Heading</div>
+          
+          <div class="syntax">## Heading</div>
+          <div class="description">H2 Heading</div>
+          
+          <div class="syntax">**bold**</div>
+          <div class="description">Bold text</div>
+          
+          <div class="syntax">*italic*</div>
+          <div class="description">Italic text</div>
+          
+          <div class="syntax">[link](url)</div>
+          <div class="description">Hyperlink</div>
+          
+          <div class="syntax">![alt](image-url)</div>
+          <div class="description">Image</div>
+          
+          <div class="syntax">- item</div>
+          <div class="description">List item</div>
+          
+          <div class="syntax">> quote</div>
+          <div class="description">Blockquote</div>
+          
+          <div class="syntax">```js
+code```</div>
+          <div class="description">Code block with language</div>
+          
+          <div class="syntax">`code`</div>
+          <div class="description">Inline code</div>
+        </div>
+      </div>
+    </div>
     <div class="post-actions">
       <div class="formatting-hints">
-        <span id="charCount">0 characters</span>
+        <span class="char-counter" id="charCount">0 characters</span>
+        <span id="wordCountLive">0 words</span>
       </div>
-      <button onclick="publishPost(true)" class="post-button">publish</button>
+      <button onclick="publishPost(true)" class="post-button">publish <kbd>⌘+↵</kbd></button>
     </div>
     <!-- Live draft preview for admin -->
     <div class="draft-container">
@@ -660,8 +1316,24 @@
     </div>
   </div>
 
+  <!-- Loading state -->
+  <div class="loading" id="loadingIndicator" style="display:none">
+    <div class="loading-dots">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+
   <!-- Timeline of posts -->
   <div id="timeline"></div>
+  
+  <!-- Back to top button -->
+  <button class="back-to-top" id="backToTop" title="Back to top">
+    <svg viewBox="0 0 24 24">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
   
   <!-- Toast notifications -->
   <div class="toast" id="toast"></div>
@@ -670,28 +1342,40 @@
     // State variables
     let auth0Client = null;
     let posts = [];
-    let isDark = localStorage.getItem('theme') === 'dark';
+    let isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (localStorage.getItem('theme')) {
+      isDark = localStorage.getItem('theme') === 'dark';
+    }
     let currentDraft = null;
     let typingTimeout = null;
     let liveIndicatorTimeout = null;
     let searchActive = false;
     let wordCount = 0;
+    let isMarkdownHelpVisible = false;
+    let isKeyboardHelpVisible = false;
+    let postFormatChanged = false;
 
     // Initialize theme
-    if (isDark) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.getElementById('themeToggle').textContent = '☀️';
+    function setTheme() {
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
     }
+    
+    setTheme();
 
     // Configure markdown with code highlighting
     marked.setOptions({ 
       breaks: true,
       gfm: true,
+      langPrefix: '',
       highlight: function(code, lang) {
-        if (hljs.getLanguage(lang)) {
-          return hljs.highlight(code, { language: lang }).value;
-        }
-        return code;
+        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+        const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+        const html = hljs.highlight(code, { language: validLanguage }).value;
+        
+        // Add language tag to pre element
+        const languageTag = language !== 'plaintext' ? ` data-language="${language}"` : '';
+        return `<pre${languageTag}><code class="hljs language-${language}">${html}</code></pre>`;
       }
     });
 
@@ -699,10 +1383,12 @@
     function toggleSearch() {
       const container = document.getElementById('searchContainer');
       searchActive = !searchActive;
-      container.style.display = searchActive ? 'block' : 'none';
+      
       if (searchActive) {
+        container.style.display = 'block';
         document.getElementById('searchInput').focus();
       } else {
+        container.style.display = 'none';
         clearSearch();
       }
     }
@@ -726,6 +1412,63 @@
         bioFull.style.display = 'block';
         bioToggle.innerHTML = 'less <span>▲</span>';
       }
+    }
+    
+    // Toggle markdown help
+    function toggleMarkdownHelp() {
+      const helpElement = document.getElementById('markdownHelp');
+      isMarkdownHelpVisible = !isMarkdownHelpVisible;
+      
+      if (isKeyboardHelpVisible) {
+        document.getElementById('keyboardHelp').style.display = 'none';
+        isKeyboardHelpVisible = false;
+      }
+      
+      helpElement.style.display = isMarkdownHelpVisible ? 'block' : 'none';
+    }
+    
+    // Toggle keyboard shortcuts help
+    function toggleKeyboardHelp() {
+      const helpElement = document.getElementById('keyboardHelp');
+      isKeyboardHelpVisible = !isKeyboardHelpVisible;
+      
+      if (isMarkdownHelpVisible) {
+        document.getElementById('markdownHelp').style.display = 'none';
+        isMarkdownHelpVisible = false;
+      }
+      
+      helpElement.style.display = isKeyboardHelpVisible ? 'block' : 'none';
+    }
+    
+    // Insert formatting syntax
+    function insertFormat(before, after) {
+      const textarea = document.getElementById('postInput');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      const selectedText = text.substring(start, end);
+      
+      // Insert formatting
+      const formattedText = before + selectedText + after;
+      textarea.value = text.substring(0, start) + formattedText + text.substring(end);
+      
+      // Restore selection position
+      textarea.focus();
+      if (selectedText.length > 0) {
+        textarea.selectionStart = start + before.length;
+        textarea.selectionEnd = start + before.length + selectedText.length;
+      } else {
+        textarea.selectionStart = start + before.length;
+        textarea.selectionEnd = start + before.length;
+      }
+      
+      // Trigger typing event to update preview
+      postFormatChanged = true;
+      const event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      });
+      textarea.dispatchEvent(event);
     }
 
     // Live indicator functions
@@ -823,10 +1566,12 @@
         const timestamp = new Date(data.timestamp);
         const diff = Math.floor((now - timestamp) / 1000);
         
+        const saveIcon = '<span class="save-icon"></span>';
+        
         if (diff < 60) {
-          saveStatus.textContent = `saved ${diff}s ago`;
+          saveStatus.innerHTML = `${saveIcon} saved ${diff}s ago`;
         } else {
-          saveStatus.textContent = `saved at ${timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          saveStatus.innerHTML = `${saveIcon} saved at ${timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         }
       });
     }
@@ -837,8 +1582,24 @@
       if (!isAuthenticated) return;
 
       // Update character count
+      const text = event.target.value;
       const charCount = document.getElementById('charCount');
-      charCount.textContent = `${event.target.value.length} characters`;
+      const wordCountLive = document.getElementById('wordCountLive');
+      charCount.textContent = `${text.length} characters`;
+      
+      // Count words
+      const liveWordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+      wordCountLive.textContent = `${liveWordCount} words`;
+
+      // Close help dialogs if open and not a format button click
+      if (!postFormatChanged) {
+        if (isMarkdownHelpVisible) {
+          document.getElementById('markdownHelp').style.display = 'none';
+          isMarkdownHelpVisible = false;
+        }
+      } else {
+        postFormatChanged = false;
+      }
 
       // Clear previous timeouts
       clearTimeout(typingTimeout);
@@ -849,7 +1610,7 @@
       db.ref('typingStatus').set({ isWriting: true, timestamp: Date.now() });
 
       // Update draft content
-      const newContent = event.target.value;
+      const newContent = text;
       db.ref('drafts/sharvesh').set({ 
         content: newContent, 
         timestamp: Date.now() 
@@ -942,6 +1703,9 @@
       };
       
       firebase.initializeApp(firebaseConfig);
+      
+      // Show loading state
+      document.getElementById('loadingIndicator').style.display = 'flex';
       loadPosts();
     }
 
@@ -1051,6 +1815,7 @@
           // Reset input and UI
           input.value = '';
           document.getElementById('charCount').textContent = '0 characters';
+          document.getElementById('wordCountLive').textContent = '0 words';
           document.getElementById('liveDraftPreview').innerHTML = '';
           document.getElementById('saveStatus').textContent = '';
           
@@ -1067,7 +1832,7 @@
 
     // Count words in text
     function countWords(text) {
-      return text.trim().split(/\s+/).length;
+      return text.trim() ? text.trim().split(/\s+/).length : 0;
     }
 
     // Delete a post
@@ -1092,9 +1857,19 @@
       }
     }
 
+    // Copy post link to clipboard
+    function copyLink(postId) {
+      const url = `${window.location.origin}${window.location.pathname}#${postId}`;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('Link copied to clipboard');
+      }, () => {
+        showToast('Failed to copy link');
+      });
+    }
+
     // Search posts
     function searchPosts(query) {
-      query = query.toLowerCase();
+      query = query.toLowerCase().trim();
       
       // If empty query, show all posts
       if (!query) {
@@ -1109,6 +1884,11 @@
       
       // Render filtered posts
       renderPosts(filtered);
+      
+      // Display search count
+      if (filtered.length > 0) {
+        showToast(`Found ${filtered.length} post${filtered.length === 1 ? '' : 's'}`);
+      }
     }
 
     // Render a post
@@ -1123,9 +1903,15 @@
       const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
       
       // Format date nicely
-      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      const timeOptions = { hour: '2-digit', minute: '2-digit' };
+      const dateOptions = { month: 'short', day: 'numeric', year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined };
+      
+      const timeStr = date.toLocaleTimeString([], timeOptions);
+      const dateStr = date.toLocaleDateString([], dateOptions);
       const formattedDate = `${dateStr}, ${timeStr}`;
+      
+      // Calculate post word count
+      const wordCountNum = post.wordCount || countWords(post.content);
       
       // Create post HTML
       postEl.innerHTML = `
@@ -1138,6 +1924,16 @@
           ` : ''}
         </div>
         <div class="content">${marked.parse(post.content)}</div>
+        <div class="post-footer">
+          <div class="post-meta">
+            <div class="word-count">${wordCountNum} words</div>
+          </div>
+          <div class="share-post">
+            <a href="#${key}" onclick="copyLink('${key}')" title="Copy link to post">
+              share
+            </a>
+          </div>
+        </div>
       `;
 
       // Process code blocks for syntax highlighting
@@ -1156,6 +1952,9 @@
         const timeline = document.getElementById('timeline');
         timeline.innerHTML = '';
         
+        // Hide loading indicator
+        document.getElementById('loadingIndicator').style.display = 'none';
+        
         const postsData = snapshot.val();
         if (!postsData) {
           showEmptyState();
@@ -1173,6 +1972,9 @@
         
         // Render posts
         renderPosts(posts);
+        
+        // Handle direct links after loading
+        handleDirectLinks();
       });
     }
 
@@ -1231,16 +2033,15 @@
       });
       
       // Update UI
-      document.getElementById('totalPosts').textContent = `total posts: ${total}`;
-      document.getElementById('todayPosts').textContent = `posts today: ${todayCount}`;
-      document.getElementById('wordCount').textContent = `total words: ${totalWords}`;
+      document.getElementById('totalPosts').innerHTML = `posts: <span class="stat-value">${total}</span>`;
+      document.getElementById('todayPosts').innerHTML = `today: <span class="stat-value">${todayCount}</span>`;
+      document.getElementById('wordCount').innerHTML = `words: <span class="stat-value">${totalWords}</span>`;
     }
 
     // Toggle between light and dark theme
     function toggleTheme() {
       isDark = !isDark;
-      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-      document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+      setTheme();
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
     }
 
@@ -1263,7 +2064,7 @@
         setTimeout(() => {
           const el = document.getElementById(`post-${postId}`);
           if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             el.style.boxShadow = '0 0 0 2px var(--secondary)';
             setTimeout(() => {
               el.style.boxShadow = '';
@@ -1273,30 +2074,109 @@
       }
     }
 
+    // Handle back to top button
+    function setupScrollHandlers() {
+      const backToTopButton = document.getElementById('backToTop');
+      
+      // Show/hide back to top button based on scroll position
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+          backToTopButton.classList.add('visible');
+        } else {
+          backToTopButton.classList.remove('visible');
+        }
+        
+        // Close help dialogs on scroll
+        if (isMarkdownHelpVisible) {
+          document.getElementById('markdownHelp').style.display = 'none';
+          isMarkdownHelpVisible = false;
+        }
+        
+        if (isKeyboardHelpVisible) {
+          document.getElementById('keyboardHelp').style.display = 'none';
+          isKeyboardHelpVisible = false;
+        }
+      });
+      
+      // Scroll to top when button is clicked
+      backToTopButton.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    }
+
     // Add keyboard shortcuts
     function setupKeyboardShortcuts() {
       document.addEventListener('keydown', async e => {
-        // Only process if user is admin
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        const user = isAuthenticated ? await auth0Client.getUser() : null;
-        const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
+        // Skip if user is typing in input or textarea
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          // Only process Cmd+Enter for publish in textarea
+          if (e.target.tagName === 'TEXTAREA' && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            const user = isAuthenticated ? await auth0Client.getUser() : null;
+            const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
+            
+            if (isAdmin) {
+              publishPost(true);
+              e.preventDefault();
+            }
+          }
+          return;
+        }
         
-        // Cmd+Enter to publish
-        if (isAdmin && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-          publishPost(true);
+        // Toggle search with /
+        if (e.key === '/' && !searchActive) {
+          toggleSearch();
           e.preventDefault();
         }
         
-        // Escape to clear search
-        if (e.key === 'Escape' && searchActive) {
-          clearSearch();
-          toggleSearch();
+        // Escape key closes dialogs
+        if (e.key === 'Escape') {
+          if (searchActive) {
+            clearSearch();
+            toggleSearch();
+          }
+          
+          if (isMarkdownHelpVisible) {
+            document.getElementById('markdownHelp').style.display = 'none';
+            isMarkdownHelpVisible = false;
+          }
+          
+          if (isKeyboardHelpVisible) {
+            document.getElementById('keyboardHelp').style.display = 'none';
+            isKeyboardHelpVisible = false;
+          }
         }
         
-        // / to focus search
-        if (e.key === '/' && !searchActive && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-          toggleSearch();
-          e.preventDefault();
+        // Home key goes to top
+        if (e.key === 'Home') {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }
+        
+        // T key toggles theme
+        if (e.key === 't' || e.key === 'T') {
+          toggleTheme();
+        }
+      });
+      
+      // Close help dialogs when clicking outside
+      document.addEventListener('click', e => {
+        const markdownHelp = document.getElementById('markdownHelp');
+        const keyboardHelp = document.getElementById('keyboardHelp');
+        
+        if (isMarkdownHelpVisible && !markdownHelp.contains(e.target) && e.target.id !== 'markdownHelpBtn') {
+          markdownHelp.style.display = 'none';
+          isMarkdownHelpVisible = false;
+        }
+        
+        if (isKeyboardHelpVisible && !keyboardHelp.contains(e.target) && e.target.id !== 'keyboardHelpBtn') {
+          keyboardHelp.style.display = 'none';
+          isKeyboardHelpVisible = false;
         }
       });
     }
@@ -1304,6 +2184,9 @@
     // Set up event listeners
     document.getElementById('loginBtn').onclick = login;
     document.getElementById('logoutBtn').onclick = logout;
+    document.getElementById('backToTop').onclick = () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     // Initialize everything
     window.onload = async () => {
@@ -1313,7 +2196,10 @@
       setupTypingListener();
       initDraftViewer();
       setupKeyboardShortcuts();
-      handleDirectLinks();
+      setupScrollHandlers();
+      
+      // Handle hash changes for direct links
+      window.addEventListener('hashchange', handleDirectLinks);
     };
   </script>
 </body>
