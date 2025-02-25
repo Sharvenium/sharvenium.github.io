@@ -11,29 +11,32 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <!-- Google Fonts and Font Awesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <!-- Settings and Analytics -->
   <link rel="icon" type="image/jpg" href="catpfp2.jpg">
   <style>
     :root {
-      --bg: #ffffff;
-      --text: #000000;
-      --subtle: #eaeaea;
+      --bg: #f5f5f5; /* Parchment-like light background */
+      --text: #333333;
+      --subtle: #d9d9d9;
       --accent: #666666;
-      --primary: #8276c0;
-      --secondary-bg: #f9f9f9;
-      --card-shadow: rgba(0, 0, 0, 0.05);
-      --hover: rgba(130, 118, 192, 0.1);
-      --code-bg: #f7f7f7;
+      --primary: #800000; /* Deep red for power */
+      --secondary-bg: #ffffff;
+      --card-shadow: rgba(0, 0, 0, 0.1);
+      --hover: rgba(128, 0, 0, 0.1);
+      --code-bg: #f0f0f0;
     }
     [data-theme="dark"] {
-      --bg: #111111;
-      --text: #ffffff;
-      --subtle: #222222;
+      --bg: #121212; /* Dark, commanding background */
+      --text: #e0e0e0;
+      --subtle: #333333;
       --accent: #999999;
-      --primary: #9B8AFB;
-      --secondary-bg: #1a1a1a;
-      --card-shadow: rgba(0, 0, 0, 0.2);
-      --hover: rgba(155, 138, 251, 0.15);
+      --primary: #b8860b; /* Gold for majesty */
+      --secondary-bg: #1e1e1e;
+      --card-shadow: rgba(0, 0, 0, 0.3);
+      --hover: rgba(184, 134, 11, 0.2);
       --code-bg: #2d2d2d;
     }
     * {
@@ -54,32 +57,37 @@
     body.live-mode {
       margin-top: 40px;
     }
-    
-    /* Header and Controls */
+    h1, h2, h3, h4 {
+      font-family: 'Playfair Display', serif;
+    }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 24px;
       padding-bottom: 8px;
-      border-bottom: 1px solid var(--subtle);
+      border-bottom: 2px solid var(--primary);
     }
     .header-left {
       display: flex;
       align-items: center;
       gap: 16px;
     }
+    .title-container {
+      display: flex;
+      align-items: center;
+    }
     h1 {
-      font-size: 24px;
-      font-weight: 500;
-      letter-spacing: -0.5px;
+      font-size: 32px;
+      font-weight: 700;
     }
     .presence {
       font-size: 14px;
-      color: var(--accent);
+      color: var(--primary);
       display: flex;
       align-items: center;
       gap: 6px;
+      font-style: italic;
     }
     .online-dot {
       width: 8px;
@@ -116,8 +124,6 @@
     #loginBtn {
       opacity: 0.3;
     }
-    
-    /* Search functionality */
     .search-container {
       position: relative;
       display: none;
@@ -148,8 +154,6 @@
       color: var(--accent);
       opacity: 0.7;
     }
-    
-    /* Stats row */
     .stats-row {
       display: flex;
       justify-content: space-between;
@@ -162,12 +166,10 @@
       display: flex;
       gap: 12px;
     }
-    
-    /* Bio section */
     .bio {
       margin-bottom: 24px;
-      padding: 16px;
-      border: 1px solid var(--subtle);
+      padding: 24px;
+      border: 2px solid var(--subtle);
       border-radius: 4px;
       background: var(--secondary-bg);
       transition: all 0.3s ease;
@@ -223,8 +225,6 @@
       align-items: center;
       gap: 4px;
     }
-    
-    /* Post container */
     #postContainer {
       margin-top: 24px;
       margin-bottom: 32px;
@@ -258,23 +258,22 @@
       background-color: var(--primary);
       color: white;
       border: none;
-      padding: 6px 12px;
+      padding: 8px 16px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 14px;
       opacity: 1;
+      font-weight: 600;
     }
     .post-button:hover {
       opacity: 0.9;
     }
-    
-    /* Live draft preview */
     .draft-container {
       margin-top: 16px;
       padding: 16px;
-      border: 1px dashed var(--subtle);
+      border: 1px solid var(--subtle);
       border-radius: 4px;
-      background: var(--secondary-bg);
+      background: var(--bg);
       opacity: 0.8;
     }
     .draft-header {
@@ -285,22 +284,25 @@
       font-size: 14px;
       color: var(--accent);
     }
+    .draft-header span:first-child {
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
     #liveDraftPreview {
       min-height: 20px;
     }
-    
-    /* Posts */
     .post {
-      padding: 20px;
-      margin-bottom: 24px;
+      padding: 24px;
+      margin-bottom: 32px;
       border: 1px solid var(--subtle);
       border-radius: 4px;
       background: var(--secondary-bg);
       transition: all 0.3s ease;
-      box-shadow: 0 2px 4px var(--card-shadow);
+      box-shadow: 0 4px 8px var(--card-shadow);
     }
     .post:hover {
-      box-shadow: 0 4px 8px var(--card-shadow);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px var(--card-shadow);
     }
     .post-header {
       display: flex;
@@ -311,6 +313,12 @@
     }
     .timestamp {
       color: var(--accent);
+      font-style: italic;
+    }
+    .post-separator {
+      border: none;
+      border-top: 1px solid var(--subtle);
+      margin: 16px 0;
     }
     .content {
       line-height: 1.7;
@@ -346,8 +354,6 @@
       color: var(--accent);
       margin: 1em 0;
     }
-    
-    /* Notifications */
     .toast {
       position: fixed;
       bottom: 20px;
@@ -366,20 +372,17 @@
       from { transform: translateY(100%); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
-    
-    /* Live status bar */
     .live-bar {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      background: linear-gradient(90deg, rgba(255,59,48,0.05) 0%, rgba(255,59,48,0.1) 100%);
-      color: var(--text);
+      background: var(--primary);
+      color: white;
       text-align: center;
-      padding: 8px;
-      font-weight: 500;
-      backdrop-filter: blur(5px);
-      border-bottom: 1px solid var(--subtle);
+      padding: 12px;
+      font-weight: 600;
+      border-bottom: 2px solid var(--accent);
       display: none;
       animation: pulse 3s infinite;
       z-index: 1000;
@@ -399,19 +402,35 @@
       100% { opacity: 0.4; }
     }
     @keyframes pulse {
-      0% { background: linear-gradient(90deg, rgba(255,59,48,0.05) 0%, rgba(255,59,48,0.1) 100%); }
-      50% { background: linear-gradient(90deg, rgba(255,59,48,0.08) 0%, rgba(255,59,48,0.15) 100%); }
-      100% { background: linear-gradient(90deg, rgba(255,59,48,0.05) 0%, rgba(255,59,48,0.1) 100%); }
+      0% { background: var(--primary); }
+      50% { background: lighten(var(--primary), 10%); }
+      100% { background: var(--primary); }
     }
-    
-    /* Empty state */
     .empty-state {
       text-align: center;
       padding: 40px 0;
       color: var(--accent);
     }
-    
-    /* Mobile responsive adjustments */
+    .back-to-top {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      z-index: 100;
+    }
+    footer {
+      text-align: center;
+      padding: 20px 0;
+      color: var(--accent);
+      font-size: 14px;
+      border-top: 1px solid var(--subtle);
+      margin-top: 40px;
+    }
     @media (max-width: 700px) {
       body {
         padding: 16px;
@@ -434,13 +453,16 @@
 <body>
   <!-- Live writing indicator -->
   <div class="live-bar" id="liveBar">
-    <span class="live-dot"></span> sharvesh is writing right now...
+    <span class="live-dot"></span> Live: Author is writing...
   </div>
 
   <!-- Header -->
   <div class="header">
     <div class="header-left">
-      <h1>sharvesh's posts</h1>
+      <div class="title-container">
+        <i class="fas fa-crown" style="color: var(--primary); font-size: 24px; margin-right: 8px;"></i>
+        <h1>sharvesh's posts</h1>
+      </div>
       <div class="presence" id="presenceIndicator">
         <span class="online-dot" id="onlineDot"></span>
         <span id="presenceText"></span>
@@ -500,6 +522,7 @@
     <div class="post-actions">
       <div class="formatting-hints">
         <span id="charCount">0 characters</span>
+        <span id="wordCount">0 words</span>
       </div>
       <button onclick="publishPost(true)" class="post-button">publish</button>
     </div>
@@ -516,6 +539,14 @@
   <!-- Timeline of posts -->
   <div id="timeline"></div>
   
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2023 Sharvesh. All rights reserved.</p>
+  </footer>
+
+  <!-- Back to top button -->
+  <button class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
+
   <!-- Toast notifications -->
   <div class="toast" id="toast"></div>
 
@@ -528,7 +559,6 @@
     let typingTimeout = null;
     let liveIndicatorTimeout = null;
     let searchActive = false;
-    let wordCount = 0;
 
     // Initialize theme
     if (isDark) {
@@ -585,8 +615,6 @@
     function showLiveIndicator(show) {
       const liveBar = document.getElementById('liveBar');
       liveBar.style.display = show ? 'block' : 'none';
-      
-      // Adjust body
       document.body.classList.toggle('live-mode', show);
     }
 
@@ -595,7 +623,6 @@
       const db = firebase.database();
       const userRef = db.ref('presence/sharvesh');
       
-      // Set up states
       const offlineState = {
         state: 'offline',
         lastChanged: firebase.database.ServerValue.TIMESTAMP
@@ -606,18 +633,15 @@
         lastChanged: firebase.database.ServerValue.TIMESTAMP
       };
 
-      // Check authentication for presence tracking
       auth0Client.isAuthenticated().then(isAuthenticated => {
         if (isAuthenticated) {
           auth0Client.getUser().then(user => {
             if (user.email === "sharvenium@gmail.com") {
-              // Set up presence tracking for admin
               db.ref('.info/connected').on('value', snap => {
                 if (!snap.val()) {
                   userRef.set(offlineState);
                   return;
                 }
-                
                 userRef.onDisconnect().set(offlineState).then(() => {
                   userRef.set(onlineState);
                 });
@@ -627,7 +651,6 @@
         }
       });
 
-      // Keep the presence indicator updated for all viewers
       userRef.on('value', snapshot => {
         const val = snapshot.val();
         if (!val) return;
@@ -663,15 +686,11 @@
           return;
         }
         
-        // Parse content with markdown
         draftEl.innerHTML = marked.parse(data.content);
-        
-        // Highlight code blocks
         draftEl.querySelectorAll('pre code').forEach(block => {
           hljs.highlightElement(block);
         });
         
-        // Update save status
         const now = new Date();
         const timestamp = new Date(data.timestamp);
         const diff = Math.floor((now - timestamp) / 1000);
@@ -689,30 +708,28 @@
       const isAuthenticated = await auth0Client.isAuthenticated();
       if (!isAuthenticated) return;
 
-      // Update character count
-      const charCount = document.getElementById('charCount');
-      charCount.textContent = `${event.target.value.length} characters`;
+      const content = event.target.value;
+      const charCount = content.length;
+      const trimmed = content.trim();
+      const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
+      document.getElementById('charCount').textContent = `${charCount} characters`;
+      document.getElementById('wordCount').textContent = `${wordCount} words`;
 
-      // Clear previous timeouts
       clearTimeout(typingTimeout);
       clearTimeout(liveIndicatorTimeout);
 
-      // Set typing status
       const db = firebase.database();
       db.ref('typingStatus').set({ isWriting: true, timestamp: Date.now() });
 
-      // Update draft content
       const newContent = event.target.value;
       db.ref('drafts/sharvesh').set({ 
         content: newContent, 
         timestamp: Date.now() 
       });
 
-      // Set timeout for draft updates
       typingTimeout = setTimeout(async () => {
         const content = newContent.trim();
         
-        // Clean up if empty
         if (!content) {
           db.ref('drafts/sharvesh').remove();
           if (currentDraft) {
@@ -723,7 +740,6 @@
           return;
         }
 
-        // Update or create draft post
         if (!currentDraft) {
           const ref = await db.ref('posts').push({
             content,
@@ -738,11 +754,9 @@
           });
         }
         
-        // Turn off typing status
         db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
       }, 1000);
 
-      // Set timeout for hiding live indicator
       liveIndicatorTimeout = setTimeout(() => {
         db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
       }, 5000);
@@ -769,7 +783,6 @@
           }
         });
 
-        // Handle auth callback if present
         if (window.location.search.includes("code=")) {
           await auth0Client.handleRedirectCallback();
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -814,12 +827,10 @@
             return;
           }
           
-          // Not authorized
           await logout();
           showToast('Access denied');
         }
         
-        // Default state
         document.getElementById('loginBtn').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'none';
         document.getElementById('postContainer').style.display = 'none';
@@ -840,7 +851,6 @@
     // Logout and cleanup
     async function logout() {
       try {
-        // Clean up draft data
         const db = firebase.database();
         db.ref('drafts/sharvesh').remove();
         
@@ -849,10 +859,8 @@
           currentDraft = null;
         }
         
-        // Set status to offline
         db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
         
-        // Logout from Auth0
         await auth0Client.logout({
           logoutParams: {
             returnTo: window.location.origin
@@ -885,15 +893,13 @@
         const db = firebase.database();
         
         if (final) {
-          // Clean up drafts
           db.ref('drafts/sharvesh').remove();
           
           if (currentDraft) {
             await db.ref(`posts/${currentDraft}`).remove();
-            currentDraft = null
-            }
+            currentDraft = null;
+          }
           
-          // Create final post
           await db.ref('posts').push({
             content,
             timestamp: Date.now(),
@@ -901,13 +907,12 @@
             wordCount: countWords(content)
           });
           
-          // Reset input and UI
           input.value = '';
           document.getElementById('charCount').textContent = '0 characters';
+          document.getElementById('wordCount').textContent = '0 words';
           document.getElementById('liveDraftPreview').innerHTML = '';
           document.getElementById('saveStatus').textContent = '';
           
-          // Reset status
           showToast('Posted successfully');
           showLiveIndicator(false);
           db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
@@ -945,22 +950,29 @@
       }
     }
 
+    // Copy post link
+    function copyLink(postId) {
+      const url = window.location.origin + '#' + postId;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('Link copied to clipboard');
+      }).catch(() => {
+        showToast('Failed to copy link');
+      });
+    }
+
     // Search posts
     function searchPosts(query) {
       query = query.toLowerCase();
       
-      // If empty query, show all posts
       if (!query) {
         renderPosts(posts);
         return;
       }
       
-      // Filter posts by content
       const filtered = posts.filter(([key, post]) => 
         post.content.toLowerCase().includes(query)
       );
       
-      // Render filtered posts
       renderPosts(filtered);
     }
 
@@ -975,30 +987,26 @@
       const user = isAuthenticated ? await auth0Client.getUser() : null;
       const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
       
-      // Format date nicely
       const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
       const formattedDate = `${dateStr}, ${timeStr}`;
       
-      // Create post HTML
       postEl.innerHTML = `
         <div class="post-header">
-          <div class="timestamp">${formattedDate}</div>
-          ${isAdmin ? `
+          <div class="timestamp">Posted on ${formattedDate}</div>
           <div class="post-actions">
-            <button onclick="deletePost('${key}')" title="Delete post">delete</button>
+            ${isAdmin ? `<button onclick="deletePost('${key}')" title="Delete post">delete</button>` : ''}
+            <button onclick="copyLink('${key}')" title="Copy link">share</button>
           </div>
-          ` : ''}
         </div>
+        <hr class="post-separator">
         <div class="content">${marked.parse(post.content)}</div>
       `;
 
-      // Process code blocks for syntax highlighting
       postEl.querySelectorAll('pre code').forEach(block => {
         hljs.highlightElement(block);
       });
       
-      // Add post to timeline
       timeline.appendChild(postEl);
     }
 
@@ -1016,15 +1024,11 @@
           return;
         }
 
-        // Process posts - filter drafts and sort by timestamp
         posts = Object.entries(postsData)
           .filter(([, post]) => !post.isDraft)
           .sort(([, a], [, b]) => b.timestamp - a.timestamp);
 
-        // Calculate stats
         updateStatsCount();
-        
-        // Render posts
         renderPosts(posts);
       });
     }
@@ -1057,7 +1061,6 @@
         return;
       }
       
-      // Render each post
       postsToRender.forEach(postData => {
         renderPost(postData[0], postData[1], timeline);
       });
@@ -1066,14 +1069,11 @@
     // Update stats counts
     function updateStatsCount() {
       const total = posts.length;
-      
-      // Count today's posts
       const todayStr = new Date().toDateString();
       const todayCount = posts.filter(([, p]) => 
         new Date(p.timestamp).toDateString() === todayStr
       ).length;
       
-      // Calculate total word count
       let totalWords = 0;
       posts.forEach(([, post]) => {
         if (post.wordCount) {
@@ -1083,7 +1083,6 @@
         }
       });
       
-      // Update UI
       document.getElementById('totalPosts').textContent = `total posts: ${total}`;
       document.getElementById('todayPosts').textContent = `posts today: ${todayCount}`;
       document.getElementById('wordCount').textContent = `total words: ${totalWords}`;
@@ -1129,30 +1128,36 @@
     // Add keyboard shortcuts
     function setupKeyboardShortcuts() {
       document.addEventListener('keydown', async e => {
-        // Only process if user is admin
         const isAuthenticated = await auth0Client.isAuthenticated();
         const user = isAuthenticated ? await auth0Client.getUser() : null;
         const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
         
-        // Cmd+Enter to publish
         if (isAdmin && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
           publishPost(true);
           e.preventDefault();
         }
         
-        // Escape to clear search
         if (e.key === 'Escape' && searchActive) {
           clearSearch();
           toggleSearch();
         }
         
-        // / to focus search
         if (e.key === '/' && !searchActive && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
           toggleSearch();
           e.preventDefault();
         }
       });
     }
+
+    // Set up back-to-top button visibility
+    window.addEventListener('scroll', () => {
+      const backToTop = document.querySelector('.back-to-top');
+      if (window.scrollY > 300) {
+        backToTop.style.display = 'block';
+      } else {
+        backToTop.style.display = 'none';
+      }
+    });
 
     // Set up event listeners
     document.getElementById('loginBtn').onclick = login;
