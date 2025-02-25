@@ -4,10 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>sharvesh's posts</title>
+  <!-- Core dependencies -->
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <!-- Settings and Analytics -->
+  <link rel="icon" type="image/jpg" href="catpfp2.jpg">
   <style>
     :root {
       --bg: #ffffff;
@@ -15,26 +20,42 @@
       --subtle: #eaeaea;
       --accent: #666666;
       --primary: #8276c0;
+      --secondary-bg: #f9f9f9;
+      --card-shadow: rgba(0, 0, 0, 0.05);
+      --hover: rgba(130, 118, 192, 0.1);
+      --code-bg: #f7f7f7;
     }
     [data-theme="dark"] {
       --bg: #111111;
       --text: #ffffff;
       --subtle: #222222;
       --accent: #999999;
+      --primary: #9B8AFB;
+      --secondary-bg: #1a1a1a;
+      --card-shadow: rgba(0, 0, 0, 0.2);
+      --hover: rgba(155, 138, 251, 0.15);
+      --code-bg: #2d2d2d;
     }
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
     body {
       font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
       max-width: 650px;
-      margin: 70px auto 0;
+      margin: 0 auto;
       padding: 20px;
       line-height: 1.6;
       background: var(--bg);
       color: var(--text);
       transition: all 0.3s ease;
     }
+    body.live-mode {
+      margin-top: 40px;
+    }
+    
+    /* Header and Controls */
     .header {
       display: flex;
       justify-content: space-between;
@@ -48,9 +69,27 @@
       align-items: center;
       gap: 16px;
     }
+    h1 {
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: -0.5px;
+    }
     .presence {
       font-size: 14px;
       color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #4CAF50;
+      display: none;
+    }
+    .online-dot.active {
+      display: block;
     }
     .controls {
       display: flex;
@@ -63,29 +102,75 @@
       color: var(--text);
       cursor: pointer;
       opacity: 0.7;
-      transition: opacity 0.2s;
+      transition: all 0.2s;
       padding: 6px 8px;
+      border-radius: 4px;
     }
     button:hover {
       opacity: 1;
+      background: var(--hover);
+    }
+    .login-section {
+      margin-left: 8px;
+    }
+    #loginBtn {
+      opacity: 0.3;
+    }
+    
+    /* Search functionality */
+    .search-container {
+      position: relative;
+      display: none;
     }
     #searchInput {
       border: 1px solid var(--subtle);
-      padding: 6px 8px;
+      padding: 6px 28px 6px 8px;
       font-size: 14px;
-      display: none;
       background: var(--bg);
       color: var(--text);
+      border-radius: 4px;
+      width: 180px;
     }
+    #searchInput:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .clear-search {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--accent);
+      opacity: 0.7;
+    }
+    
+    /* Stats row */
     .stats-row {
+      display: flex;
+      justify-content: space-between;
       margin-bottom: 16px;
       font-size: 14px;
       color: var(--accent);
+      padding: 8px 0;
     }
+    .stats-left, .stats-right {
+      display: flex;
+      gap: 12px;
+    }
+    
+    /* Bio section */
     .bio {
       margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--subtle);
+      padding: 16px;
+      border: 1px solid var(--subtle);
+      border-radius: 4px;
+      background: var(--secondary-bg);
+      transition: all 0.3s ease;
     }
     .bio a {
       color: var(--primary);
@@ -94,6 +179,11 @@
     .bio a:hover {
       text-decoration: underline;
     }
+    .bio-preview {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
     .bio ul {
       list-style-type: none;
       margin: 16px 0;
@@ -101,17 +191,43 @@
     }
     .bio li {
       margin-bottom: 8px;
+      position: relative;
+      padding-left: 16px;
+    }
+    .bio li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+    }
+    .bio h2 {
+      font-size: 18px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .bio h4 {
+      font-size: 16px;
+      margin-top: 16px;
+      font-weight: 500;
+      opacity: 0.8;
     }
     .bio-toggle {
       background: none;
       border: none;
-      color: var(--accent);
+      color: var(--primary);
       cursor: pointer;
       padding: 0;
       font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
+    
+    /* Post container */
     #postContainer {
       margin-top: 24px;
+      margin-bottom: 32px;
       display: none;
     }
     textarea {
@@ -124,48 +240,140 @@
       border: 1px solid var(--subtle);
       background: var(--bg);
       color: var(--text);
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--hover);
     }
     .post-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-top: 8px;
     }
+    .post-button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      opacity: 1;
+    }
+    .post-button:hover {
+      opacity: 0.9;
+    }
+    
+    /* Live draft preview */
+    .draft-container {
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px dashed var(--subtle);
+      border-radius: 4px;
+      background: var(--secondary-bg);
+      opacity: 0.8;
+    }
+    .draft-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--accent);
+    }
+    #liveDraftPreview {
+      min-height: 20px;
+    }
+    
+    /* Posts */
     .post {
-      padding: 24px 0;
-      border-bottom: 1px solid var(--subtle);
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid var(--subtle);
+      border-radius: 4px;
+      background: var(--secondary-bg);
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px var(--card-shadow);
+    }
+    .post:hover {
+      box-shadow: 0 4px 8px var(--card-shadow);
     }
     .post-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       font-size: 14px;
     }
     .timestamp {
       color: var(--accent);
     }
     .content {
-      white-space: pre-wrap;
+      line-height: 1.7;
     }
+    .content p {
+      margin-bottom: 1em;
+    }
+    .content a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .content a:hover {
+      text-decoration: underline;
+    }
+    .content pre {
+      background: var(--code-bg);
+      padding: 12px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 1em 0;
+    }
+    .content code {
+      font-family: 'SF Mono', Menlo, Monaco, monospace;
+      font-size: 0.9em;
+    }
+    .content img {
+      max-width: 100%;
+      border-radius: 4px;
+    }
+    .content blockquote {
+      border-left: 3px solid var(--primary);
+      padding-left: 16px;
+      color: var(--accent);
+      margin: 1em 0;
+    }
+    
+    /* Notifications */
     .toast {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background: var(--text);
-      color: var(--bg);
+      background: var(--primary);
+      color: white;
       padding: 12px 24px;
       font-size: 14px;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       display: none;
       animation: slideIn 0.3s ease-out;
+      z-index: 100;
     }
     @keyframes slideIn {
       from { transform: translateY(100%); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
+    
+    /* Live status bar */
     .live-bar {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      background: rgba(255, 0, 0, 0.05);
+      background: linear-gradient(90deg, rgba(255,59,48,0.05) 0%, rgba(255,59,48,0.1) 100%);
       color: var(--text);
       text-align: center;
       padding: 8px;
@@ -173,50 +381,92 @@
       backdrop-filter: blur(5px);
       border-bottom: 1px solid var(--subtle);
       display: none;
-      animation: pulse 2s infinite;
+      animation: pulse 3s infinite;
       z-index: 1000;
     }
-    @keyframes pulse {
-      0% { opacity: 0.8; }
-      50% { opacity: 1; }
-      100% { opacity: 0.8; }
+    .live-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: #ff3b30;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: blink 1.5s infinite;
     }
-    #liveDraftPreview {
-      margin-top: 16px;
-      padding: 10px;
-      border: 1px dashed var(--subtle);
-      min-height: 40px;
+    @keyframes blink {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+    @keyframes pulse {
+      0% { background: linear-gradient(90deg, rgba(255,59,48,0.05) 0%, rgba(255,59,48,0.1) 100%); }
+      50% { background: linear-gradient(90deg, rgba(255,59,48,0.08) 0%, rgba(255,59,48,0.15) 100%); }
+      100% { background: linear-gradient(90deg, rgba(255,59,48,0.05) 0%, rgba(255,59,48,0.1) 100%); }
+    }
+    
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--accent);
+    }
+    
+    /* Mobile responsive adjustments */
+    @media (max-width: 700px) {
+      body {
+        padding: 16px;
+      }
+      .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+      .stats-row {
+        flex-direction: column;
+        gap: 8px;
+      }
+      #searchInput {
+        width: 140px;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Live writing indicator -->
   <div class="live-bar" id="liveBar">
-    🔴 sharvesh is writing right now...
+    <span class="live-dot"></span> sharvesh is writing right now...
   </div>
 
-  <!-- header -->
+  <!-- Header -->
   <div class="header">
     <div class="header-left">
       <h1>sharvesh's posts</h1>
-      <div class="presence" id="presenceIndicator"></div>
+      <div class="presence" id="presenceIndicator">
+        <span class="online-dot" id="onlineDot"></span>
+        <span id="presenceText"></span>
+      </div>
     </div>
     <div class="controls">
-      <button onclick="toggleSearch()">🔍</button>
-      <input type="text" id="searchInput" placeholder="search" onkeyup="searchPosts(this.value)">
-      <button onclick="toggleTheme()">🌙</button>
-      <button id="loginBtn">login</button>
-      <button id="logoutBtn" style="display:none">logout</button>
+      <button onclick="toggleSearch()" title="Search posts">🔍</button>
+      <div class="search-container" id="searchContainer">
+        <input type="text" id="searchInput" placeholder="search posts..." onkeyup="searchPosts(this.value)">
+        <button class="clear-search" id="clearSearch" onclick="clearSearch()" title="Clear search">✕</button>
+      </div>
+      <button onclick="toggleTheme()" id="themeToggle" title="Toggle theme">🌙</button>
+      <div class="login-section">
+        <button id="loginBtn" title="Admin login">login</button>
+        <button id="logoutBtn" style="display:none" title="Logout">logout</button>
+      </div>
     </div>
   </div>
 
-  <!-- small bio -->
+  <!-- Bio section -->
   <div class="bio">
     <div class="bio-preview">
-      <p>conscript. writing at <a href="https://www.sharvesh.com/">sharvesh.com</a></p>
-      <button onclick="toggleBio()" class="bio-toggle">more ▼</button>
+      <p>conscript. writing at <a href="https://www.sharvesh.com/" target="_blank">sharvesh.com</a></p>
+      <button onclick="toggleBio()" class="bio-toggle" id="bioToggle">more <span>▼</span></button>
     </div>
-    <div class="bio-full" style="display:none">
-  
+    <div class="bio-full" id="bioFull" style="display:none">
       <h2>fav books</h2>
       <ul>
         <li>elon musk, steve jobs, kissinger by walter isaacson</li> 
@@ -229,147 +479,240 @@
         <li>the singapore story by lee kuan yew</li> 
         <li>hpmor by eliezer yudkowsky</li>   
       </ul>
-  
-      <br>
-  
-      <h4>@sharvenium everywhere</h4>        
-      <button onclick="toggleBio()" class="bio-toggle">less ▲</button>
+      <h4>@sharvenium everywhere</h4>
     </div>
   </div>
 
-  <!-- stats row -->
+  <!-- Stats row -->
   <div class="stats-row">
-    <span id="totalPosts"></span> | <span id="todayPosts"></span>
-  </div>
-
-  <!-- post container -->
-  <div id="postContainer">
-    <textarea id="postInput" placeholder="what's on your mind?" oninput="handleTyping(event)"></textarea>
-    <div class="post-actions">
-      <button onclick="publishPost(true)">post</button>
+    <div class="stats-left">
+      <span id="totalPosts">total posts: 0</span>
+      <span id="todayPosts">posts today: 0</span>
     </div>
-    <div id="liveDraftPreview"></div>
+    <div class="stats-right">
+      <span id="wordCount">total words: 0</span>
+    </div>
   </div>
 
-  <!-- timeline -->
+  <!-- Admin post editor -->
+  <div id="postContainer">
+    <textarea id="postInput" placeholder="what's on your mind? markdown supported..." oninput="handleTyping(event)"></textarea>
+    <div class="post-actions">
+      <div class="formatting-hints">
+        <span id="charCount">0 characters</span>
+      </div>
+      <button onclick="publishPost(true)" class="post-button">publish</button>
+    </div>
+    <!-- Live draft preview for admin -->
+    <div class="draft-container">
+      <div class="draft-header">
+        <span>live preview</span>
+        <span id="saveStatus"></span>
+      </div>
+      <div id="liveDraftPreview"></div>
+    </div>
+  </div>
+
+  <!-- Timeline of posts -->
   <div id="timeline"></div>
+  
+  <!-- Toast notifications -->
   <div class="toast" id="toast"></div>
 
   <script>
+    // State variables
     let auth0Client = null;
     let posts = [];
     let isDark = localStorage.getItem('theme') === 'dark';
     let currentDraft = null;
     let typingTimeout = null;
     let liveIndicatorTimeout = null;
+    let searchActive = false;
+    let wordCount = 0;
 
+    // Initialize theme
     if (isDark) {
       document.documentElement.setAttribute('data-theme', 'dark');
-      document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️';
+      document.getElementById('themeToggle').textContent = '☀️';
     }
 
-    marked.setOptions({ breaks: true });
+    // Configure markdown with code highlighting
+    marked.setOptions({ 
+      breaks: true,
+      gfm: true,
+      highlight: function(code, lang) {
+        if (hljs.getLanguage(lang)) {
+          return hljs.highlight(code, { language: lang }).value;
+        }
+        return code;
+      }
+    });
 
-    // toggle search input
+    // Toggle search input
     function toggleSearch() {
-      const input = document.getElementById('searchInput');
-      input.style.display = (input.style.display === 'none' || !input.style.display) ? 'inline-block' : 'none';
-      if (input.style.display !== 'none') input.focus();
-    }
-
-    function toggleBio() {
-      const preview = document.querySelector('.bio-preview');
-      const full = document.querySelector('.bio-full');
-      if (full.style.display === 'none') {
-        preview.querySelector('.bio-toggle').style.display = 'none';
-        full.style.display = 'block';
+      const container = document.getElementById('searchContainer');
+      searchActive = !searchActive;
+      container.style.display = searchActive ? 'block' : 'none';
+      if (searchActive) {
+        document.getElementById('searchInput').focus();
       } else {
-        preview.querySelector('.bio-toggle').style.display = 'block';
-        full.style.display = 'none';
+        clearSearch();
       }
     }
 
+    // Clear search
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      searchPosts('');
+    }
+
+    // Toggle bio section
+    function toggleBio() {
+      const bioFull = document.getElementById('bioFull');
+      const bioToggle = document.getElementById('bioToggle');
+      const isExpanded = bioFull.style.display !== 'none';
+      
+      if (isExpanded) {
+        bioFull.style.display = 'none';
+        bioToggle.innerHTML = 'more <span>▼</span>';
+      } else {
+        bioFull.style.display = 'block';
+        bioToggle.innerHTML = 'less <span>▲</span>';
+      }
+    }
+
+    // Live indicator functions
     function showLiveIndicator(show) {
       const liveBar = document.getElementById('liveBar');
       liveBar.style.display = show ? 'block' : 'none';
-      document.body.style.marginTop = show ? '70px' : '20px';
+      
+      // Adjust body
+      document.body.classList.toggle('live-mode', show);
     }
 
-    // presence
+    // Initialize presence indicators
     function initPresence() {
-  const db = firebase.database();
-  const userRef = db.ref('presence/sharvesh');
-  const offlineState = {
-    state: 'offline',
-    lastChanged: firebase.database.ServerValue.TIMESTAMP
-  };
-  const onlineState = {
-    state: 'online',
-    lastChanged: firebase.database.ServerValue.TIMESTAMP
-  };
+      const db = firebase.database();
+      const userRef = db.ref('presence/sharvesh');
+      
+      // Set up states
+      const offlineState = {
+        state: 'offline',
+        lastChanged: firebase.database.ServerValue.TIMESTAMP
+      };
+      
+      const onlineState = {
+        state: 'online',
+        lastChanged: firebase.database.ServerValue.TIMESTAMP
+      };
 
-  // Listen to auth state changes
-  auth0Client.isAuthenticated().then(isAuthenticated => {
-    if (isAuthenticated) {
-      auth0Client.getUser().then(user => {
-        if (user.email === "sharvenium@gmail.com") {
-          // Only set up presence tracking if authenticated as the correct user
-          db.ref('.info/connected').on('value', snap => {
-            if (!snap.val()) {
-              userRef.set(offlineState);
-              return;
+      // Check authentication for presence tracking
+      auth0Client.isAuthenticated().then(isAuthenticated => {
+        if (isAuthenticated) {
+          auth0Client.getUser().then(user => {
+            if (user.email === "sharvenium@gmail.com") {
+              // Set up presence tracking for admin
+              db.ref('.info/connected').on('value', snap => {
+                if (!snap.val()) {
+                  userRef.set(offlineState);
+                  return;
+                }
+                
+                userRef.onDisconnect().set(offlineState).then(() => {
+                  userRef.set(onlineState);
+                });
+              });
             }
-            userRef.onDisconnect().set(offlineState).then(() => {
-              userRef.set(onlineState);
-            });
           });
         }
       });
-    }
-  });
 
-  // Keep the presence indicator updated for all viewers
-  userRef.on('value', snapshot => {
-    const val = snapshot.val();
-    if (!val) return;
-    const presenceEl = document.getElementById('presenceIndicator');
-    const isOnline = val.state === 'online';
-    const lastChanged = new Date(val.lastChanged).toLocaleString();
-    if (isOnline) {
-      presenceEl.textContent = 'online rn';
-    } else {
-      presenceEl.textContent = `was last seen at ${lastChanged}`;
+      // Keep the presence indicator updated for all viewers
+      userRef.on('value', snapshot => {
+        const val = snapshot.val();
+        if (!val) return;
+        
+        const presenceText = document.getElementById('presenceText');
+        const onlineDot = document.getElementById('onlineDot');
+        const isOnline = val.state === 'online';
+        
+        if (isOnline) {
+          presenceText.textContent = 'online now';
+          onlineDot.classList.add('active');
+        } else {
+          const lastSeen = new Date(val.lastChanged);
+          const timeStr = lastSeen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const dateStr = lastSeen.toLocaleDateString([], { month: 'short', day: 'numeric' });
+          presenceText.textContent = `last seen ${timeStr}, ${dateStr}`;
+          onlineDot.classList.remove('active');
+        }
+      });
     }
-  });
-}
+
+    // Live draft preview
     function initDraftViewer() {
       const db = firebase.database();
       db.ref('drafts/sharvesh').on('value', snapshot => {
         const data = snapshot.val();
         const draftEl = document.getElementById('liveDraftPreview');
+        const saveStatus = document.getElementById('saveStatus');
+        
         if (!data) {
           draftEl.innerHTML = '';
+          saveStatus.textContent = '';
           return;
         }
+        
+        // Parse content with markdown
         draftEl.innerHTML = marked.parse(data.content);
+        
+        // Highlight code blocks
+        draftEl.querySelectorAll('pre code').forEach(block => {
+          hljs.highlightElement(block);
+        });
+        
+        // Update save status
+        const now = new Date();
+        const timestamp = new Date(data.timestamp);
+        const diff = Math.floor((now - timestamp) / 1000);
+        
+        if (diff < 60) {
+          saveStatus.textContent = `saved ${diff}s ago`;
+        } else {
+          saveStatus.textContent = `saved at ${timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
       });
     }
 
+    // Typing handler with draft updates
     async function handleTyping(event) {
       const isAuthenticated = await auth0Client.isAuthenticated();
       if (!isAuthenticated) return;
 
+      // Update character count
+      const charCount = document.getElementById('charCount');
+      charCount.textContent = `${event.target.value.length} characters`;
+
+      // Clear previous timeouts
       clearTimeout(typingTimeout);
       clearTimeout(liveIndicatorTimeout);
 
+      // Set typing status
       const db = firebase.database();
       db.ref('typingStatus').set({ isWriting: true, timestamp: Date.now() });
 
+      // Update draft content
       const newContent = event.target.value;
-      db.ref('drafts/sharvesh').set({ content: newContent, timestamp: Date.now() });
+      db.ref('drafts/sharvesh').set({ 
+        content: newContent, 
+        timestamp: Date.now() 
+      });
 
+      // Set timeout for draft updates
       typingTimeout = setTimeout(async () => {
         const content = newContent.trim();
+        
+        // Clean up if empty
         if (!content) {
           db.ref('drafts/sharvesh').remove();
           if (currentDraft) {
@@ -380,6 +723,7 @@
           return;
         }
 
+        // Update or create draft post
         if (!currentDraft) {
           const ref = await db.ref('posts').push({
             content,
@@ -393,14 +737,18 @@
             timestamp: Date.now()
           });
         }
+        
+        // Turn off typing status
         db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
       }, 1000);
 
+      // Set timeout for hiding live indicator
       liveIndicatorTimeout = setTimeout(() => {
         db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
       }, 5000);
     }
 
+    // Set up typing status listener
     function setupTypingListener() {
       const db = firebase.database();
       db.ref('typingStatus').on('value', snapshot => {
@@ -410,6 +758,7 @@
       });
     }
 
+    // Initialize Auth0
     async function initAuth0() {
       try {
         auth0Client = await auth0.createAuth0Client({
@@ -420,16 +769,20 @@
           }
         });
 
+        // Handle auth callback if present
         if (window.location.search.includes("code=")) {
           await auth0Client.handleRedirectCallback();
           window.history.replaceState({}, document.title, window.location.pathname);
         }
+        
         updateUI();
       } catch (e) {
-        console.error("auth0 init error:", e);
+        console.error("Auth0 init error:", e);
+        showToast("Authentication error");
       }
     }
 
+    // Initialize Firebase
     function initFirebase() {
       const firebaseConfig = {
         apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
@@ -440,33 +793,42 @@
         messagingSenderId: "564254133364",
         appId: "1:564254133364:web:e89a32517db54517369521"
       };
+      
       firebase.initializeApp(firebaseConfig);
       loadPosts();
     }
 
+    // Update UI based on authentication
     async function updateUI() {
       try {
         const isAuthenticated = await auth0Client.isAuthenticated();
+        
         if (isAuthenticated) {
           const user = await auth0Client.getUser();
-          console.log('logged in as:', user.email);
+          console.log('Logged in as:', user.email);
+          
           if (user.email === "sharvenium@gmail.com") {
             document.getElementById('loginBtn').style.display = 'none';
             document.getElementById('logoutBtn').style.display = 'block';
             document.getElementById('postContainer').style.display = 'block';
             return;
           }
+          
+          // Not authorized
           await logout();
-          showToast('access denied');
+          showToast('Access denied');
         }
+        
+        // Default state
         document.getElementById('loginBtn').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'none';
         document.getElementById('postContainer').style.display = 'none';
       } catch (e) {
-        console.error('updateui error:', e);
+        console.error('UI update error:', e);
       }
     }
 
+    // Login with Auth0
     async function login() {
       await auth0Client.loginWithRedirect({
         authorizationParams: {
@@ -475,157 +837,336 @@
       });
     }
 
+    // Logout and cleanup
     async function logout() {
-      await auth0Client.logout({
-        logoutParams: {
-          returnTo: window.location.origin
+      try {
+        // Clean up draft data
+        const db = firebase.database();
+        db.ref('drafts/sharvesh').remove();
+        
+        if (currentDraft) {
+          await db.ref(`posts/${currentDraft}`).remove();
+          currentDraft = null;
         }
-      });
+        
+        // Set status to offline
+        db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
+        
+        // Logout from Auth0
+        await auth0Client.logout({
+          logoutParams: {
+            returnTo: window.location.origin
+          }
+        });
+      } catch (e) {
+        console.error("Logout error:", e);
+      }
     }
 
+    // Publish a post
     async function publishPost(final = false) {
       try {
         const isAuthenticated = await auth0Client.isAuthenticated();
         const user = await auth0Client.getUser();
+        
         if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
-          showToast('access denied');
+          showToast('Access denied');
           return;
         }
 
         const input = document.getElementById('postInput');
         const content = input.value.trim();
-        if (!content) return;
+        
+        if (!content) {
+          showToast('Cannot publish empty post');
+          return;
+        }
 
         const db = firebase.database();
+        
         if (final) {
+          // Clean up drafts
           db.ref('drafts/sharvesh').remove();
+          
           if (currentDraft) {
             await db.ref(`posts/${currentDraft}`).remove();
-            currentDraft = null;
-          }
+            currentDraft = null
+            }
+          
+          // Create final post
           await db.ref('posts').push({
             content,
             timestamp: Date.now(),
-            isDraft: false
+            isDraft: false,
+            wordCount: countWords(content)
           });
+          
+          // Reset input and UI
           input.value = '';
-          showToast('posted!');
+          document.getElementById('charCount').textContent = '0 characters';
+          document.getElementById('liveDraftPreview').innerHTML = '';
+          document.getElementById('saveStatus').textContent = '';
+          
+          // Reset status
+          showToast('Posted successfully');
           showLiveIndicator(false);
+          db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
         }
       } catch (e) {
-        console.error("post error:", e);
-        showToast('error posting');
+        console.error("Publish error:", e);
+        showToast('Error publishing post');
       }
     }
 
+    // Count words in text
+    function countWords(text) {
+      return text.trim().split(/\s+/).length;
+    }
+
+    // Delete a post
     async function deletePost(postId) {
       try {
         const isAuthenticated = await auth0Client.isAuthenticated();
         const user = await auth0Client.getUser();
+        
         if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
-          showToast('access denied');
+          showToast('Access denied');
           return;
         }
-        if (!confirm('delete this post?')) return;
-
+        
+        if (!confirm('Delete this post?')) return;
+        
         const db = firebase.database();
         await db.ref(`posts/${postId}`).remove();
-        showToast('deleted!');
+        showToast('Post deleted');
       } catch (e) {
-        console.error("delete error:", e);
-        showToast('error deleting');
+        console.error("Delete error:", e);
+        showToast('Error deleting post');
       }
     }
 
+    // Search posts
     function searchPosts(query) {
       query = query.toLowerCase();
-      const timeline = document.getElementById('timeline');
-      timeline.innerHTML = '';
-      posts
-        .filter(([key, post]) => post.content.toLowerCase().includes(query))
-        .forEach(([key, post]) => {
-          renderPost(key, post, timeline);
-        });
+      
+      // If empty query, show all posts
+      if (!query) {
+        renderPosts(posts);
+        return;
+      }
+      
+      // Filter posts by content
+      const filtered = posts.filter(([key, post]) => 
+        post.content.toLowerCase().includes(query)
+      );
+      
+      // Render filtered posts
+      renderPosts(filtered);
     }
 
+    // Render a post
     async function renderPost(key, post, timeline) {
       const date = new Date(post.timestamp);
       const postEl = document.createElement('div');
       postEl.className = 'post';
+      postEl.id = `post-${key}`;
 
       const isAuthenticated = await auth0Client.isAuthenticated();
-
+      const user = isAuthenticated ? await auth0Client.getUser() : null;
+      const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
+      
+      // Format date nicely
+      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+      const formattedDate = `${dateStr}, ${timeStr}`;
+      
+      // Create post HTML
       postEl.innerHTML = `
         <div class="post-header">
-          <div class="timestamp">${date.toLocaleString()}</div>
-          ${isAuthenticated ? `
+          <div class="timestamp">${formattedDate}</div>
+          ${isAdmin ? `
           <div class="post-actions">
-            <button onclick="deletePost('${key}')">delete</button>
+            <button onclick="deletePost('${key}')" title="Delete post">delete</button>
           </div>
           ` : ''}
         </div>
         <div class="content">${marked.parse(post.content)}</div>
       `;
 
+      // Process code blocks for syntax highlighting
+      postEl.querySelectorAll('pre code').forEach(block => {
+        hljs.highlightElement(block);
+      });
+      
+      // Add post to timeline
       timeline.appendChild(postEl);
     }
 
+    // Load posts from Firebase
     function loadPosts() {
       const db = firebase.database();
       db.ref('posts').on('value', async (snapshot) => {
         const timeline = document.getElementById('timeline');
         timeline.innerHTML = '';
+        
         const postsData = snapshot.val();
         if (!postsData) {
-          updateStats(0, 0);
+          showEmptyState();
+          updateStats(0, 0, 0);
           return;
         }
 
+        // Process posts - filter drafts and sort by timestamp
         posts = Object.entries(postsData)
-          .filter(([,post]) => !post.isDraft)
-          .sort(([,a], [,b]) => b.timestamp - a.timestamp);
+          .filter(([, post]) => !post.isDraft)
+          .sort(([, a], [, b]) => b.timestamp - a.timestamp);
 
-        // update stats
+        // Calculate stats
         updateStatsCount();
-
-        posts.forEach(([key, post]) => {
-          renderPost(key, post, timeline);
-        });
+        
+        // Render posts
+        renderPosts(posts);
       });
     }
 
-    // update the stats row
-    function updateStatsCount() {
-      const total = posts.length;
-      const todayStr = new Date().toDateString();
-      const todayCount = posts.filter(([, p]) => new Date(p.timestamp).toDateString() === todayStr).length;
-      document.getElementById('totalPosts').textContent = 'total posts: ' + total;
-      document.getElementById('todayPosts').textContent = 'posts today: ' + todayCount;
+    // Show empty state when no posts exist
+    function showEmptyState() {
+      const timeline = document.getElementById('timeline');
+      timeline.innerHTML = `
+        <div class="empty-state">
+          <p>No posts yet</p>
+        </div>
+      `;
     }
 
+    // Render a list of posts
+    function renderPosts(postsToRender) {
+      const timeline = document.getElementById('timeline');
+      timeline.innerHTML = '';
+      
+      if (postsToRender.length === 0) {
+        if (searchActive && document.getElementById('searchInput').value) {
+          timeline.innerHTML = `
+            <div class="empty-state">
+              <p>No posts matching your search</p>
+            </div>
+          `;
+        } else {
+          showEmptyState();
+        }
+        return;
+      }
+      
+      // Render each post
+      postsToRender.forEach(postData => {
+        renderPost(postData[0], postData[1], timeline);
+      });
+    }
+
+    // Update stats counts
+    function updateStatsCount() {
+      const total = posts.length;
+      
+      // Count today's posts
+      const todayStr = new Date().toDateString();
+      const todayCount = posts.filter(([, p]) => 
+        new Date(p.timestamp).toDateString() === todayStr
+      ).length;
+      
+      // Calculate total word count
+      let totalWords = 0;
+      posts.forEach(([, post]) => {
+        if (post.wordCount) {
+          totalWords += post.wordCount;
+        } else {
+          totalWords += countWords(post.content);
+        }
+      });
+      
+      // Update UI
+      document.getElementById('totalPosts').textContent = `total posts: ${total}`;
+      document.getElementById('todayPosts').textContent = `posts today: ${todayCount}`;
+      document.getElementById('wordCount').textContent = `total words: ${totalWords}`;
+    }
+
+    // Toggle between light and dark theme
     function toggleTheme() {
       isDark = !isDark;
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-      document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️' : '🌙';
+      document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
     }
 
+    // Show toast notification
     function showToast(message) {
       const toast = document.getElementById('toast');
       toast.textContent = message;
       toast.style.display = 'block';
-      setTimeout(() => toast.style.display = 'none', 3000);
+      
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
     }
 
+    // Handle direct links to posts via hash
+    function handleDirectLinks() {
+      const hash = window.location.hash;
+      if (hash && hash.length > 1) {
+        const postId = hash.substring(1);
+        setTimeout(() => {
+          const el = document.getElementById(`post-${postId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+            el.style.boxShadow = '0 0 0 2px var(--primary)';
+            setTimeout(() => {
+              el.style.boxShadow = '';
+            }, 2000);
+          }
+        }, 500);
+      }
+    }
+
+    // Add keyboard shortcuts
+    function setupKeyboardShortcuts() {
+      document.addEventListener('keydown', async e => {
+        // Only process if user is admin
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        const user = isAuthenticated ? await auth0Client.getUser() : null;
+        const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
+        
+        // Cmd+Enter to publish
+        if (isAdmin && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+          publishPost(true);
+          e.preventDefault();
+        }
+        
+        // Escape to clear search
+        if (e.key === 'Escape' && searchActive) {
+          clearSearch();
+          toggleSearch();
+        }
+        
+        // / to focus search
+        if (e.key === '/' && !searchActive && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+          toggleSearch();
+          e.preventDefault();
+        }
+      });
+    }
+
+    // Set up event listeners
     document.getElementById('loginBtn').onclick = login;
     document.getElementById('logoutBtn').onclick = logout;
 
+    // Initialize everything
     window.onload = async () => {
       await initAuth0();
       initFirebase();
       initPresence();
       setupTypingListener();
       initDraftViewer();
+      setupKeyboardShortcuts();
+      handleDirectLinks();
     };
   </script>
 </body>
