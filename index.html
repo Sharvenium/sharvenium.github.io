@@ -1,1178 +1,914 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>sharvesh's posts</title>
-  <!-- Core dependencies -->
-  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
-  <!-- Google Fonts and Font Awesome -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <!-- Settings and Analytics -->
-  <link rel="icon" type="image/jpg" href="catpfp2.jpg">
-  <style>
-    :root {
-      --bg: #f5f5f5; /* Parchment-like light background */
-      --text: #333333;
-      --subtle: #d9d9d9;
-      --accent: #666666;
-      --primary: #800000; /* Deep red for power */
-      --secondary-bg: #ffffff;
-      --card-shadow: rgba(0, 0, 0, 0.1);
-      --hover: rgba(128, 0, 0, 0.1);
-      --code-bg: #f0f0f0;
-    }
-    [data-theme="dark"] {
-      --bg: #121212; /* Dark, commanding background */
-      --text: #e0e0e0;
-      --subtle: #333333;
-      --accent: #999999;
-      --primary: #b8860b; /* Gold for majesty */
-      --secondary-bg: #1e1e1e;
-      --card-shadow: rgba(0, 0, 0, 0.3);
-      --hover: rgba(184, 134, 11, 0.2);
-      --code-bg: #2d2d2d;
-    }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
-      max-width: 650px;
-      margin: 0 auto;
-      padding: 20px;
-      line-height: 1.6;
-      background: var(--bg);
-      color: var(--text);
-      transition: all 0.3s ease;
-    }
-    body.live-mode {
-      margin-top: 40px;
-    }
-    h1, h2, h3, h4 {
-      font-family: 'Playfair Display', serif;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--primary);
-    }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .title-container {
-      display: flex;
-      align-items: center;
-    }
-    h1 {
-      font-size: 32px;
-      font-weight: 700;
-    }
-    .presence {
-      font-size: 14px;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-style: italic;
-    }
-    .online-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: #4CAF50;
-      display: none;
-    }
-    .online-dot.active {
-      display: block;
-    }
-    .controls {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    button {
-      background: none;
-      border: none;
-      color: var(--text);
-      cursor: pointer;
-      opacity: 0.7;
-      transition: all 0.2s;
-      padding: 6px 8px;
-      border-radius: 4px;
-    }
-    button:hover {
-      opacity: 1;
-      background: var(--hover);
-    }
-    .login-section {
-      margin-left: 8px;
-    }
-    #loginBtn {
-      opacity: 0.3;
-    }
-    .search-container {
-      position: relative;
-      display: none;
-    }
-    #searchInput {
-      border: 1px solid var(--subtle);
-      padding: 6px 28px 6px 8px;
-      font-size: 14px;
-      background: var(--bg);
-      color: var(--text);
-      border-radius: 4px;
-      width: 180px;
-    }
-    #searchInput:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-    .clear-search {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      font-size: 12px;
-      color: var(--accent);
-      opacity: 0.7;
-    }
-    .stats-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      font-size: 14px;
-      color: var(--accent);
-      padding: 8px 0;
-    }
-    .stats-left, .stats-right {
-      display: flex;
-      gap: 12px;
-    }
-    .bio {
-      margin-bottom: 24px;
-      padding: 24px;
-      border: 2px solid var(--subtle);
-      border-radius: 4px;
-      background: var(--secondary-bg);
-      transition: all 0.3s ease;
-    }
-    .bio a {
-      color: var(--primary);
-      text-decoration: none;
-    }
-    .bio a:hover {
-      text-decoration: underline;
-    }
-    .bio-preview {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .bio ul {
-      list-style-type: none;
-      margin: 16px 0;
-      padding: 0;
-    }
-    .bio li {
-      margin-bottom: 8px;
-      position: relative;
-      padding-left: 16px;
-    }
-    .bio li::before {
-      content: "→";
-      position: absolute;
-      left: 0;
-      color: var(--primary);
-    }
-    .bio h2 {
-      font-size: 18px;
-      margin-top: 16px;
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-    .bio h4 {
-      font-size: 16px;
-      margin-top: 16px;
-      font-weight: 500;
-      opacity: 0.8;
-    }
-    .bio-toggle {
-      background: none;
-      border: none;
-      color: var(--primary);
-      cursor: pointer;
-      padding: 0;
-      font-size: 14px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    #postContainer {
-      margin-top: 24px;
-      margin-bottom: 32px;
-      display: none;
-    }
-    textarea {
-      width: 100%;
-      height: 150px;
-      resize: vertical;
-      padding: 12px;
-      font-family: inherit;
-      font-size: inherit;
-      border: 1px solid var(--subtle);
-      background: var(--bg);
-      color: var(--text);
-      border-radius: 4px;
-      transition: all 0.2s ease;
-    }
-    textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--hover);
-    }
-    .post-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .post-button {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      opacity: 1;
-      font-weight: 600;
-    }
-    .post-button:hover {
-      opacity: 0.9;
-    }
-    .draft-container {
-      margin-top: 16px;
-      padding: 16px;
-      border: 1px solid var(--subtle);
-      border-radius: 4px;
-      background: var(--bg);
-      opacity: 0.8;
-    }
-    .draft-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: var(--accent);
-    }
-    .draft-header span:first-child {
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    #liveDraftPreview {
-      min-height: 20px;
-    }
-    .post {
-      padding: 24px;
-      margin-bottom: 32px;
-      border: 1px solid var(--subtle);
-      border-radius: 4px;
-      background: var(--secondary-bg);
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 8px var(--card-shadow);
-    }
-    .post:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px var(--card-shadow);
-    }
-    .post-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      font-size: 14px;
-    }
-    .timestamp {
-      color: var(--accent);
-      font-style: italic;
-    }
-    .post-separator {
-      border: none;
-      border-top: 1px solid var(--subtle);
-      margin: 16px 0;
-    }
-    .content {
-      line-height: 1.7;
-    }
-    .content p {
-      margin-bottom: 1em;
-    }
-    .content a {
-      color: var(--primary);
-      text-decoration: none;
-    }
-    .content a:hover {
-      text-decoration: underline;
-    }
-    .content pre {
-      background: var(--code-bg);
-      padding: 12px;
-      border-radius: 4px;
-      overflow-x: auto;
-      margin: 1em 0;
-    }
-    .content code {
-      font-family: 'SF Mono', Menlo, Monaco, monospace;
-      font-size: 0.9em;
-    }
-    .content img {
-      max-width: 100%;
-      border-radius: 4px;
-    }
-    .content blockquote {
-      border-left: 3px solid var(--primary);
-      padding-left: 16px;
-      color: var(--accent);
-      margin: 1em 0;
-    }
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary);
-      color: white;
-      padding: 12px 24px;
-      font-size: 14px;
-      border-radius: 4px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      display: none;
-      animation: slideIn 0.3s ease-out;
-      z-index: 100;
-    }
-    @keyframes slideIn {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .live-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: var(--primary);
-      color: white;
-      text-align: center;
-      padding: 12px;
-      font-weight: 600;
-      border-bottom: 2px solid var(--accent);
-      display: none;
-      animation: pulse 3s infinite;
-      z-index: 1000;
-    }
-    .live-dot {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      background-color: #ff3b30;
-      border-radius: 50%;
-      margin-right: 8px;
-      animation: blink 1.5s infinite;
-    }
-    @keyframes blink {
-      0% { opacity: 0.4; }
-      50% { opacity: 1; }
-      100% { opacity: 0.4; }
-    }
-    @keyframes pulse {
-      0% { background: var(--primary); }
-      50% { background: lighten(var(--primary), 10%); }
-      100% { background: var(--primary); }
-    }
-    .empty-state {
-      text-align: center;
-      padding: 40px 0;
-      color: var(--accent);
-    }
-    .back-to-top {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary);
-      color: white;
-      padding: 10px 15px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: none;
-      z-index: 100;
-    }
-    footer {
-      text-align: center;
-      padding: 20px 0;
-      color: var(--accent);
-      font-size: 14px;
-      border-top: 1px solid var(--subtle);
-      margin-top: 40px;
-    }
-    @media (max-width: 700px) {
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>the empire of chronicles</title>
+    <link href="https://fonts.googleapis.com/css2?family=playfair+display&family=source+sans+pro:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <link rel="icon" type="image/png" href="empire-icon.png">
+    <style>
+      :root {
+        --bg: #fdfaf3;
+        --text: #2d2d2d;
+        --subtle: #e0dcd3;
+        --accent: #d4af37;
+        --primary: #8b5e3c;
+        --secondary-bg: #f9f5ec;
+        --card-shadow: rgba(0, 0, 0, 0.1);
+        --hover: rgba(139, 94, 60, 0.1);
+        --code-bg: #f5f0e6;
+        --header-bg: #fff8f0;
+        --nav-border: #d4af37;
+      }
+      [data-theme="dark"] {
+        --bg: #1a1a1a;
+        --text: #f5f5f5;
+        --subtle: #333333;
+        --accent: #d4af37;
+        --primary: #b8860b;
+        --secondary-bg: #222222;
+        --card-shadow: rgba(0, 0, 0, 0.3);
+        --hover: rgba(184, 134, 11, 0.2);
+        --code-bg: #2a2a2a;
+        --header-bg: #222222;
+        --nav-border: #d4af37;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
       body {
+        font-family: 'source sans pro', sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+        background: var(--bg);
+        color: var(--text);
+        transition: all 0.3s ease;
+      }
+      h1, h2, h3, h4, h5 {
+        font-family: 'playfair display', serif;
+        margin-bottom: 0.5em;
+        color: var(--primary);
+      }
+      /* header */
+      .header {
+        background: var(--header-bg);
+        padding: 16px 20px;
+        border-bottom: 2px solid var(--nav-border);
+        margin-bottom: 24px;
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .nav .logo {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+      }
+      .nav ul {
+        list-style: none;
+        display: flex;
+        gap: 20px;
+      }
+      .nav ul li a {
+        text-decoration: none;
+        color: var(--primary);
+        font-weight: 600;
+        transition: color 0.2s;
+      }
+      .nav ul li a:hover {
+        color: var(--accent);
+      }
+      /* hero section */
+      .hero {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      .hero p {
+        font-size: 18px;
+        margin-top: 12px;
+        color: var(--accent);
+      }
+      /* controls and search */
+      .controls {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .controls button {
+        background: none;
+        border: 1px solid var(--subtle);
+        color: var(--text);
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 4px;
+        transition: background 0.2s;
+      }
+      .controls button:hover {
+        background: var(--hover);
+      }
+      .search-container {
+        position: relative;
+        display: none;
+      }
+      #search-input {
+        border: 1px solid var(--subtle);
+        padding: 8px 36px 8px 12px;
+        font-size: 14px;
+        border-radius: 4px;
+        background: var(--bg);
+        color: var(--text);
+        width: 200px;
+      }
+      #search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+      .clear-search {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 14px;
+        color: var(--accent);
+        cursor: pointer;
+      }
+      /* bio section */
+      .bio {
+        border: 2px solid var(--subtle);
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 32px;
+        background: var(--secondary-bg);
+      }
+      .bio a {
+        color: var(--primary);
+        text-decoration: none;
+      }
+      .bio a:hover {
+        text-decoration: underline;
+      }
+      .bio-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .bio-toggle {
+        background: none;
+        border: none;
+        color: var(--accent);
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .bio-content {
+        margin-top: 16px;
+        display: none;
+      }
+      .bio-content ul {
+        list-style: disc inside;
+        margin-top: 8px;
+      }
+      /* stats */
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--subtle);
+        margin-bottom: 20px;
+      }
+      /* post editor */
+      #editor {
+        margin-bottom: 40px;
+        display: none;
+      }
+      #editor textarea {
+        width: 100%;
+        height: 150px;
+        padding: 12px;
+        border: 1px solid var(--subtle);
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 16px;
+        background: var(--bg);
+        color: var(--text);
+        resize: vertical;
+        transition: all 0.2s;
+      }
+      #editor textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--hover);
+      }
+      .editor-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+      }
+      .editor-actions span {
+        font-size: 14px;
+        color: var(--subtle);
+      }
+      .editor-actions button {
+        background: var(--primary);
+        border: none;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: opacity 0.2s;
+      }
+      .editor-actions button:hover {
+        opacity: 0.9;
+      }
+      /* live preview */
+      .draft-preview {
+        border: 2px dashed var(--subtle);
         padding: 16px;
+        margin-top: 20px;
+        border-radius: 4px;
+        background: var(--secondary-bg);
+        opacity: 0.9;
       }
-      .header-left {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
+      .draft-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--subtle);
+        margin-bottom: 8px;
       }
-      .stats-row {
-        flex-direction: column;
-        gap: 8px;
+      /* posts */
+      .post {
+        border: 2px solid var(--subtle);
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 32px;
+        background: var(--secondary-bg);
+        box-shadow: 0 3px 6px var(--card-shadow);
+        transition: box-shadow 0.3s;
       }
-      #searchInput {
-        width: 140px;
+      .post:hover {
+        box-shadow: 0 6px 12px var(--card-shadow);
       }
-    }
-  </style>
-</head>
-<body>
-  <!-- Live writing indicator -->
-  <div class="live-bar" id="liveBar">
-    <span class="live-dot"></span> Live: Author is writing...
-  </div>
-
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <div class="title-container">
-        <i class="fas fa-crown" style="color: var(--primary); font-size: 24px; margin-right: 8px;"></i>
-        <h1>sharvesh's posts</h1>
-      </div>
-      <div class="presence" id="presenceIndicator">
-        <span class="online-dot" id="onlineDot"></span>
-        <span id="presenceText"></span>
-      </div>
+      .post-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        margin-bottom: 12px;
+        color: var(--subtle);
+      }
+      .post-header button {
+        background: none;
+        border: 1px solid var(--subtle);
+        color: var(--primary);
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .post-header button:hover {
+        background: var(--hover);
+      }
+      .post-content p {
+        margin-bottom: 1em;
+        line-height: 1.7;
+      }
+      .post-content a {
+        color: var(--primary);
+        text-decoration: none;
+      }
+      .post-content a:hover {
+        text-decoration: underline;
+      }
+      .post-content pre {
+        background: var(--code-bg);
+        padding: 12px;
+        border-radius: 4px;
+        overflow-x: auto;
+        margin: 1em 0;
+      }
+      .post-content code {
+        font-family: 'source sans pro', monospace;
+        font-size: 0.9em;
+      }
+      /* notifications */
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--primary);
+        color: #fff;
+        padding: 12px 24px;
+        font-size: 14px;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: none;
+        animation: slide-in 0.3s ease-out;
+        z-index: 100;
+      }
+      @keyframes slide-in {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      /* live indicator */
+      .live-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: linear-gradient(90deg, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0.15) 100%);
+        color: var(--text);
+        text-align: center;
+        padding: 10px;
+        font-weight: 600;
+        backdrop-filter: blur(5px);
+        border-bottom: 2px solid var(--nav-border);
+        display: none;
+        z-index: 1000;
+      }
+      .live-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: var(--accent);
+        border-radius: 50%;
+        margin-right: 8px;
+        animation: blink 1.5s infinite;
+      }
+      @keyframes blink {
+        0% { opacity: 0.4; }
+        50% { opacity: 1; }
+        100% { opacity: 0.4; }
+      }
+      /* responsive */
+      @media (max-width: 700px) {
+        body { padding: 16px; }
+        .nav ul { gap: 12px; }
+        #search-input { width: 160px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="live-bar" id="live-bar">
+      <span class="live-dot"></span> sharvesh is composing a new decree...
     </div>
+
+    <header class="header">
+      <nav class="nav">
+        <div class="logo">the empire</div>
+        <ul>
+          <li><a href="#">home</a></li>
+          <li><a href="#">chronicles</a></li>
+          <li><a href="#">legacies</a></li>
+          <li><a href="#">about</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <h1>the grand chronicles</h1>
+      <p>where words rule and destiny is penned</p>
+    </section>
+
     <div class="controls">
-      <button onclick="toggleSearch()" title="Search posts">🔍</button>
-      <div class="search-container" id="searchContainer">
-        <input type="text" id="searchInput" placeholder="search posts..." onkeyup="searchPosts(this.value)">
-        <button class="clear-search" id="clearSearch" onclick="clearSearch()" title="Clear search">✕</button>
+      <button onclick="toggle_search()" title="search chronicles">🔍</button>
+      <div class="search-container" id="search-container">
+        <input type="text" id="search-input" placeholder="search chronicles..." onkeyup="search_posts(this.value)">
+        <button class="clear-search" id="clear-search" onclick="clear_search()" title="clear search">✕</button>
       </div>
-      <button onclick="toggleTheme()" id="themeToggle" title="Toggle theme">🌙</button>
-      <div class="login-section">
-        <button id="loginBtn" title="Admin login">login</button>
-        <button id="logoutBtn" style="display:none" title="Logout">logout</button>
+      <button onclick="toggle_theme()" id="theme-toggle" title="toggle theme">🌙</button>
+      <button id="login-btn" onclick="login()" title="admin login">login</button>
+      <button id="logout-btn" onclick="logout()" title="logout" style="display:none">logout</button>
+    </div>
+
+    <div class="bio">
+      <div class="bio-header">
+        <p>conscript. writing at <a href="https://www.sharvesh.com/" target="_blank">sharvesh.com</a></p>
+        <button class="bio-toggle" id="bio-toggle" onclick="toggle_bio()">more ▼</button>
+      </div>
+      <div class="bio-content" id="bio-content">
+        <h2>fav tomes</h2>
+        <ul>
+          <li>elon musk, steve jobs, kissinger by walter isaacson</li>
+          <li>the years of lyndon johnson by robert caro</li>
+          <li>napoleon by andrew roberts</li>
+          <li>alexander hamilton, titan by ron chernow</li>
+          <li>the patriarch by david nasaw</li>
+          <li>the theodore roosevelt trilogy by edmund morris</li>
+          <li>total recall by arnold schwarzenegger</li>
+          <li>the singapore story by lee kuan yew</li>
+          <li>hpmor by eliezer yudkowsky</li>
+        </ul>
+        <h4>@sharvenium everywhere</h4>
       </div>
     </div>
-  </div>
 
-  <!-- Bio section -->
-  <div class="bio">
-    <div class="bio-preview">
-      <p>conscript. writing at <a href="https://www.sharvesh.com/" target="_blank">sharvesh.com</a></p>
-      <button onclick="toggleBio()" class="bio-toggle" id="bioToggle">more <span>▼</span></button>
+    <div class="stats" id="stats">
+      <span id="total-posts">total posts: 0</span>
+      <span id="today-posts">posts today: 0</span>
+      <span id="word-count">total words: 0</span>
     </div>
-    <div class="bio-full" id="bioFull" style="display:none">
-      <h2>fav books</h2>
-      <ul>
-        <li>elon musk, steve jobs, kissinger by walter isaacson</li> 
-        <li>the years of lyndon johnson by robert caro</li> 
-        <li>napoleon by andrew roberts</li> 
-        <li>alexander hamilton, titan by ron chernow</li> 
-        <li>the patriarch by david nasaw</li> 
-        <li>the theodore roosevelt trilogy by edmund morris</li> 
-        <li>total recall by arnold schwarzenegger</li>
-        <li>the singapore story by lee kuan yew</li> 
-        <li>hpmor by eliezer yudkowsky</li>   
-      </ul>
-      <h4>@sharvenium everywhere</h4>
-    </div>
-  </div>
 
-  <!-- Stats row -->
-  <div class="stats-row">
-    <div class="stats-left">
-      <span id="totalPosts">total posts: 0</span>
-      <span id="todayPosts">posts today: 0</span>
-    </div>
-    <div class="stats-right">
-      <span id="wordCount">total words: 0</span>
-    </div>
-  </div>
-
-  <!-- Admin post editor -->
-  <div id="postContainer">
-    <textarea id="postInput" placeholder="what's on your mind? markdown supported..." oninput="handleTyping(event)"></textarea>
-    <div class="post-actions">
-      <div class="formatting-hints">
-        <span id="charCount">0 characters</span>
-        <span id="wordCount">0 words</span>
+    <div id="editor">
+      <textarea id="post-input" placeholder="compose your decree... markdown enabled..." oninput="handle_typing(event)"></textarea>
+      <div class="editor-actions">
+        <span id="char-count">0 characters</span>
+        <button onclick="publish_post(true)">publish decree</button>
       </div>
-      <button onclick="publishPost(true)" class="post-button">publish</button>
-    </div>
-    <!-- Live draft preview for admin -->
-    <div class="draft-container">
-      <div class="draft-header">
-        <span>live preview</span>
-        <span id="saveStatus"></span>
+      <div class="draft-preview">
+        <div class="draft-header">
+          <span>live preview</span>
+          <span id="save-status"></span>
+        </div>
+        <div id="live-draft-preview"></div>
       </div>
-      <div id="liveDraftPreview"></div>
     </div>
-  </div>
 
-  <!-- Timeline of posts -->
-  <div id="timeline"></div>
-  
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2023 Sharvesh. All rights reserved.</p>
-  </footer>
+    <div id="timeline"></div>
 
-  <!-- Back to top button -->
-  <button class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
+    <div class="toast" id="toast"></div>
 
-  <!-- Toast notifications -->
-  <div class="toast" id="toast"></div>
+    <script>
+      let auth0client = null;
+      let posts = [];
+      let isdark = localStorage.getItem('theme') === 'dark';
+      let currentdraft = null;
+      let typingtimeout = null;
+      let liveindicatortimeout = null;
+      let searchactive = false;
 
-  <script>
-    // State variables
-    let auth0Client = null;
-    let posts = [];
-    let isDark = localStorage.getItem('theme') === 'dark';
-    let currentDraft = null;
-    let typingTimeout = null;
-    let liveIndicatorTimeout = null;
-    let searchActive = false;
+      if (isdark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-toggle').textContent = '☀️';
+      }
 
-    // Initialize theme
-    if (isDark) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.getElementById('themeToggle').textContent = '☀️';
-    }
-
-    // Configure markdown with code highlighting
-    marked.setOptions({ 
-      breaks: true,
-      gfm: true,
-      highlight: function(code, lang) {
-        if (hljs.getLanguage(lang)) {
-          return hljs.highlight(code, { language: lang }).value;
+      marked.setOptions({
+        breaks: true,
+        gfm: true,
+        highlight: function(code, lang) {
+          if (hljs.getLanguage(lang)) {
+            return hljs.highlight(code, { language: lang }).value;
+          }
+          return code;
         }
-        return code;
+      });
+
+      function toggle_search() {
+        const container = document.getElementById('search-container');
+        searchactive = !searchactive;
+        container.style.display = searchactive ? 'block' : 'none';
+        if (searchactive) {
+          document.getElementById('search-input').focus();
+        } else {
+          clear_search();
+        }
       }
-    });
 
-    // Toggle search input
-    function toggleSearch() {
-      const container = document.getElementById('searchContainer');
-      searchActive = !searchActive;
-      container.style.display = searchActive ? 'block' : 'none';
-      if (searchActive) {
-        document.getElementById('searchInput').focus();
-      } else {
-        clearSearch();
+      function clear_search() {
+        document.getElementById('search-input').value = '';
+        search_posts('');
       }
-    }
 
-    // Clear search
-    function clearSearch() {
-      document.getElementById('searchInput').value = '';
-      searchPosts('');
-    }
-
-    // Toggle bio section
-    function toggleBio() {
-      const bioFull = document.getElementById('bioFull');
-      const bioToggle = document.getElementById('bioToggle');
-      const isExpanded = bioFull.style.display !== 'none';
-      
-      if (isExpanded) {
-        bioFull.style.display = 'none';
-        bioToggle.innerHTML = 'more <span>▼</span>';
-      } else {
-        bioFull.style.display = 'block';
-        bioToggle.innerHTML = 'less <span>▲</span>';
+      function toggle_bio() {
+        const bio = document.getElementById('bio-content');
+        const btn = document.getElementById('bio-toggle');
+        if (bio.style.display === 'block') {
+          bio.style.display = 'none';
+          btn.innerHTML = 'more ▼';
+        } else {
+          bio.style.display = 'block';
+          btn.innerHTML = 'less ▲';
+        }
       }
-    }
 
-    // Live indicator functions
-    function showLiveIndicator(show) {
-      const liveBar = document.getElementById('liveBar');
-      liveBar.style.display = show ? 'block' : 'none';
-      document.body.classList.toggle('live-mode', show);
-    }
+      function show_live_indicator(show) {
+        const livebar = document.getElementById('live-bar');
+        livebar.style.display = show ? 'block' : 'none';
+        document.body.classList.toggle('live-mode', show);
+      }
 
-    // Initialize presence indicators
-    function initPresence() {
-      const db = firebase.database();
-      const userRef = db.ref('presence/sharvesh');
-      
-      const offlineState = {
-        state: 'offline',
-        lastChanged: firebase.database.ServerValue.TIMESTAMP
-      };
-      
-      const onlineState = {
-        state: 'online',
-        lastChanged: firebase.database.ServerValue.TIMESTAMP
-      };
+      function init_presence() {
+        const db = firebase.database();
+        const userref = db.ref('presence/sharvesh');
+        const offline = {
+          state: 'offline',
+          lastchanged: firebase.database.ServerValue.TIMESTAMP
+        };
+        const online = {
+          state: 'online',
+          lastchanged: firebase.database.ServerValue.TIMESTAMP
+        };
 
-      auth0Client.isAuthenticated().then(isAuthenticated => {
-        if (isAuthenticated) {
-          auth0Client.getUser().then(user => {
-            if (user.email === "sharvenium@gmail.com") {
-              db.ref('.info/connected').on('value', snap => {
-                if (!snap.val()) {
-                  userRef.set(offlineState);
-                  return;
-                }
-                userRef.onDisconnect().set(offlineState).then(() => {
-                  userRef.set(onlineState);
+        auth0client.isAuthenticated().then(isauthenticated => {
+          if (isauthenticated) {
+            auth0client.getUser().then(user => {
+              if (user.email === "sharvenium@gmail.com") {
+                db.ref('.info/connected').on('value', snap => {
+                  if (!snap.val()) {
+                    userref.set(offline);
+                    return;
+                  }
+                  userref.onDisconnect().set(offline).then(() => {
+                    userref.set(online);
+                  });
                 });
-              });
-            }
-          });
-        }
-      });
-
-      userRef.on('value', snapshot => {
-        const val = snapshot.val();
-        if (!val) return;
-        
-        const presenceText = document.getElementById('presenceText');
-        const onlineDot = document.getElementById('onlineDot');
-        const isOnline = val.state === 'online';
-        
-        if (isOnline) {
-          presenceText.textContent = 'online now';
-          onlineDot.classList.add('active');
-        } else {
-          const lastSeen = new Date(val.lastChanged);
-          const timeStr = lastSeen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const dateStr = lastSeen.toLocaleDateString([], { month: 'short', day: 'numeric' });
-          presenceText.textContent = `last seen ${timeStr}, ${dateStr}`;
-          onlineDot.classList.remove('active');
-        }
-      });
-    }
-
-    // Live draft preview
-    function initDraftViewer() {
-      const db = firebase.database();
-      db.ref('drafts/sharvesh').on('value', snapshot => {
-        const data = snapshot.val();
-        const draftEl = document.getElementById('liveDraftPreview');
-        const saveStatus = document.getElementById('saveStatus');
-        
-        if (!data) {
-          draftEl.innerHTML = '';
-          saveStatus.textContent = '';
-          return;
-        }
-        
-        draftEl.innerHTML = marked.parse(data.content);
-        draftEl.querySelectorAll('pre code').forEach(block => {
-          hljs.highlightElement(block);
-        });
-        
-        const now = new Date();
-        const timestamp = new Date(data.timestamp);
-        const diff = Math.floor((now - timestamp) / 1000);
-        
-        if (diff < 60) {
-          saveStatus.textContent = `saved ${diff}s ago`;
-        } else {
-          saveStatus.textContent = `saved at ${timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        }
-      });
-    }
-
-    // Typing handler with draft updates
-    async function handleTyping(event) {
-      const isAuthenticated = await auth0Client.isAuthenticated();
-      if (!isAuthenticated) return;
-
-      const content = event.target.value;
-      const charCount = content.length;
-      const trimmed = content.trim();
-      const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
-      document.getElementById('charCount').textContent = `${charCount} characters`;
-      document.getElementById('wordCount').textContent = `${wordCount} words`;
-
-      clearTimeout(typingTimeout);
-      clearTimeout(liveIndicatorTimeout);
-
-      const db = firebase.database();
-      db.ref('typingStatus').set({ isWriting: true, timestamp: Date.now() });
-
-      const newContent = event.target.value;
-      db.ref('drafts/sharvesh').set({ 
-        content: newContent, 
-        timestamp: Date.now() 
-      });
-
-      typingTimeout = setTimeout(async () => {
-        const content = newContent.trim();
-        
-        if (!content) {
-          db.ref('drafts/sharvesh').remove();
-          if (currentDraft) {
-            await db.ref(`posts/${currentDraft}`).remove();
-            currentDraft = null;
-          }
-          db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
-          return;
-        }
-
-        if (!currentDraft) {
-          const ref = await db.ref('posts').push({
-            content,
-            timestamp: Date.now(),
-            isDraft: true
-          });
-          currentDraft = ref.key;
-        } else {
-          await db.ref(`posts/${currentDraft}`).update({
-            content,
-            timestamp: Date.now()
-          });
-        }
-        
-        db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
-      }, 1000);
-
-      liveIndicatorTimeout = setTimeout(() => {
-        db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
-      }, 5000);
-    }
-
-    // Set up typing status listener
-    function setupTypingListener() {
-      const db = firebase.database();
-      db.ref('typingStatus').on('value', snapshot => {
-        const status = snapshot.val();
-        if (!status) return;
-        showLiveIndicator(status.isWriting);
-      });
-    }
-
-    // Initialize Auth0
-    async function initAuth0() {
-      try {
-        auth0Client = await auth0.createAuth0Client({
-          domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
-          clientId: 'z97KEo08fOMAUocMMOpfglaIb0oBi1K2',
-          authorizationParams: {
-            redirect_uri: window.location.origin
+              }
+            });
           }
         });
 
-        if (window.location.search.includes("code=")) {
-          await auth0Client.handleRedirectCallback();
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        
-        updateUI();
-      } catch (e) {
-        console.error("Auth0 init error:", e);
-        showToast("Authentication error");
+        userref.on('value', snapshot => {
+          const val = snapshot.val();
+          if (!val) return;
+          // (optional) update any presence indicators if needed
+        });
       }
-    }
 
-    // Initialize Firebase
-    function initFirebase() {
-      const firebaseConfig = {
-        apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
-        authDomain: "twitterblog-9e7ea.firebaseapp.com",
-        databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "twitterblog-9e7ea",
-        storageBucket: "twitterblog-9e7ea.firebasestorage.app",
-        messagingSenderId: "564254133364",
-        appId: "1:564254133364:web:e89a32517db54517369521"
-      };
-      
-      firebase.initializeApp(firebaseConfig);
-      loadPosts();
-    }
-
-    // Update UI based on authentication
-    async function updateUI() {
-      try {
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        
-        if (isAuthenticated) {
-          const user = await auth0Client.getUser();
-          console.log('Logged in as:', user.email);
-          
-          if (user.email === "sharvenium@gmail.com") {
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'block';
-            document.getElementById('postContainer').style.display = 'block';
+      function init_draft_viewer() {
+        const db = firebase.database();
+        db.ref('drafts/sharvesh').on('value', snapshot => {
+          const data = snapshot.val();
+          const draftel = document.getElementById('live-draft-preview');
+          const savestatus = document.getElementById('save-status');
+          if (!data) {
+            draftel.innerHTML = '';
+            savestatus.textContent = '';
             return;
           }
-          
-          await logout();
-          showToast('Access denied');
-        }
-        
-        document.getElementById('loginBtn').style.display = 'block';
-        document.getElementById('logoutBtn').style.display = 'none';
-        document.getElementById('postContainer').style.display = 'none';
-      } catch (e) {
-        console.error('UI update error:', e);
-      }
-    }
-
-    // Login with Auth0
-    async function login() {
-      await auth0Client.loginWithRedirect({
-        authorizationParams: {
-          redirect_uri: window.location.origin
-        }
-      });
-    }
-
-    // Logout and cleanup
-    async function logout() {
-      try {
-        const db = firebase.database();
-        db.ref('drafts/sharvesh').remove();
-        
-        if (currentDraft) {
-          await db.ref(`posts/${currentDraft}`).remove();
-          currentDraft = null;
-        }
-        
-        db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
-        
-        await auth0Client.logout({
-          logoutParams: {
-            returnTo: window.location.origin
+          draftel.innerHTML = marked.parse(data.content);
+          draftel.querySelectorAll('pre code').forEach(block => {
+            hljs.highlightElement(block);
+          });
+          const now = new Date();
+          const timestamp = new Date(data.timestamp);
+          const diff = Math.floor((now - timestamp) / 1000);
+          if (diff < 60) {
+            savestatus.textContent = `saved ${diff}s ago`;
+          } else {
+            savestatus.textContent = `saved at ${timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
           }
         });
-      } catch (e) {
-        console.error("Logout error:", e);
       }
-    }
 
-    // Publish a post
-    async function publishPost(final = false) {
-      try {
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        const user = await auth0Client.getUser();
-        
-        if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
-          showToast('Access denied');
-          return;
-        }
-
-        const input = document.getElementById('postInput');
-        const content = input.value.trim();
-        
-        if (!content) {
-          showToast('Cannot publish empty post');
-          return;
-        }
-
+      async function handle_typing(event) {
+        const isauthenticated = await auth0client.isAuthenticated();
+        if (!isauthenticated) return;
+        const charcount = document.getElementById('char-count');
+        charcount.textContent = `${event.target.value.length} characters`;
+        clearTimeout(typingtimeout);
+        clearTimeout(liveindicatortimeout);
         const db = firebase.database();
-        
-        if (final) {
-          db.ref('drafts/sharvesh').remove();
-          
-          if (currentDraft) {
-            await db.ref(`posts/${currentDraft}`).remove();
-            currentDraft = null;
+        db.ref('typingstatus').set({ iswriting: true, timestamp: Date.now() });
+        const newcontent = event.target.value;
+        db.ref('drafts/sharvesh').set({
+          content: newcontent,
+          timestamp: Date.now()
+        });
+        typingtimeout = setTimeout(async () => {
+          const content = newcontent.trim();
+          if (!content) {
+            db.ref('drafts/sharvesh').remove();
+            if (currentdraft) {
+              await db.ref(`posts/${currentdraft}`).remove();
+              currentdraft = null;
+            }
+            db.ref('typingstatus').set({ iswriting: false, timestamp: Date.now() });
+            return;
           }
-          
-          await db.ref('posts').push({
-            content,
-            timestamp: Date.now(),
-            isDraft: false,
-            wordCount: countWords(content)
-          });
-          
-          input.value = '';
-          document.getElementById('charCount').textContent = '0 characters';
-          document.getElementById('wordCount').textContent = '0 words';
-          document.getElementById('liveDraftPreview').innerHTML = '';
-          document.getElementById('saveStatus').textContent = '';
-          
-          showToast('Posted successfully');
-          showLiveIndicator(false);
-          db.ref('typingStatus').set({ isWriting: false, timestamp: Date.now() });
-        }
-      } catch (e) {
-        console.error("Publish error:", e);
-        showToast('Error publishing post');
+          if (!currentdraft) {
+            const ref = await db.ref('posts').push({
+              content: content,
+              timestamp: Date.now(),
+              isdraft: true
+            });
+            currentdraft = ref.key;
+          } else {
+            await db.ref(`posts/${currentdraft}`).update({
+              content: content,
+              timestamp: Date.now()
+            });
+          }
+          db.ref('typingstatus').set({ iswriting: false, timestamp: Date.now() });
+        }, 1000);
+        liveindicatortimeout = setTimeout(() => {
+          db.ref('typingstatus').set({ iswriting: false, timestamp: Date.now() });
+        }, 5000);
       }
-    }
 
-    // Count words in text
-    function countWords(text) {
-      return text.trim().split(/\s+/).length;
-    }
+      function setup_typing_listener() {
+        const db = firebase.database();
+        db.ref('typingstatus').on('value', snapshot => {
+          const status = snapshot.val();
+          if (!status) return;
+          show_live_indicator(status.iswriting);
+        });
+      }
 
-    // Delete a post
-    async function deletePost(postId) {
-      try {
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        const user = await auth0Client.getUser();
-        
-        if (!isAuthenticated || user.email !== "sharvenium@gmail.com") {
-          showToast('Access denied');
+      async function init_auth0() {
+        try {
+          auth0client = await auth0.createAuth0Client({
+            domain: 'dev-kaixuri5eyviz2vm.us.auth0.com',
+            client_id: 'z97keo08fomauocmmopfglaib0obi1k2',
+            authorizationParams: { redirect_uri: window.location.origin }
+          });
+          if (window.location.search.includes("code=")) {
+            await auth0client.handleRedirectCallback();
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+          update_ui();
+        } catch (e) {
+          console.error("auth0 init error:", e);
+          show_toast("authentication error");
+        }
+      }
+
+      function init_firebase() {
+        const firebaseconfig = {
+          apiKey: "AIzaSyASOSvCtoOddTRUdqzxVtCBcyfJ82SsEc0",
+          authDomain: "twitterblog-9e7ea.firebaseapp.com",
+          databaseURL: "https://twitterblog-9e7ea-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "twitterblog-9e7ea",
+          storageBucket: "twitterblog-9e7ea.firebasestorage.app",
+          messagingSenderId: "564254133364",
+          appId: "1:564254133364:web:e89a32517db54517369521"
+        };
+        firebase.initializeApp(firebaseconfig);
+        load_posts();
+      }
+
+      async function update_ui() {
+        try {
+          const isauthenticated = await auth0client.isAuthenticated();
+          if (isauthenticated) {
+            const user = await auth0client.getUser();
+            console.log('logged in as:', user.email);
+            if (user.email === "sharvenium@gmail.com") {
+              document.getElementById('login-btn').style.display = 'none';
+              document.getElementById('logout-btn').style.display = 'block';
+              document.getElementById('editor').style.display = 'block';
+              return;
+            }
+            await logout();
+            show_toast('access denied');
+          }
+          document.getElementById('login-btn').style.display = 'block';
+          document.getElementById('logout-btn').style.display = 'none';
+          document.getElementById('editor').style.display = 'none';
+        } catch (e) {
+          console.error('ui update error:', e);
+        }
+      }
+
+      async function login() {
+        await auth0client.loginWithRedirect({ authorizationParams: { redirect_uri: window.location.origin } });
+      }
+
+      async function logout() {
+        try {
+          const db = firebase.database();
+          db.ref('drafts/sharvesh').remove();
+          if (currentdraft) {
+            await db.ref(`posts/${currentdraft}`).remove();
+            currentdraft = null;
+          }
+          db.ref('typingstatus').set({ iswriting: false, timestamp: Date.now() });
+          await auth0client.logout({ logoutParams: { returnTo: window.location.origin } });
+        } catch (e) {
+          console.error("logout error:", e);
+        }
+      }
+
+      async function publish_post(final = false) {
+        try {
+          const isauthenticated = await auth0client.isAuthenticated();
+          const user = await auth0client.getUser();
+          if (!isauthenticated || user.email !== "sharvenium@gmail.com") {
+            show_toast('access denied');
+            return;
+          }
+          const input = document.getElementById('post-input');
+          const content = input.value.trim();
+          if (!content) {
+            show_toast('cannot publish empty decree');
+            return;
+          }
+          const db = firebase.database();
+          if (final) {
+            db.ref('drafts/sharvesh').remove();
+            if (currentdraft) {
+              await db.ref(`posts/${currentdraft}`).remove();
+              currentdraft = null;
+            }
+            await db.ref('posts').push({
+              content: content,
+              timestamp: Date.now(),
+              isdraft: false,
+              wordcount: count_words(content)
+            });
+            input.value = '';
+            document.getElementById('char-count').textContent = '0 characters';
+            document.getElementById('live-draft-preview').innerHTML = '';
+            document.getElementById('save-status').textContent = '';
+            show_toast('decree published');
+            show_live_indicator(false);
+            db.ref('typingstatus').set({ iswriting: false, timestamp: Date.now() });
+          }
+        } catch (e) {
+          console.error("publish error:", e);
+          show_toast('error publishing decree');
+        }
+      }
+
+      function count_words(text) {
+        return text.trim().split(/\s+/).length;
+      }
+
+      async function delete_post(postid) {
+        try {
+          const isauthenticated = await auth0client.isAuthenticated();
+          const user = await auth0client.getUser();
+          if (!isauthenticated || user.email !== "sharvenium@gmail.com") {
+            show_toast('access denied');
+            return;
+          }
+          if (!confirm('delete this decree?')) return;
+          const db = firebase.database();
+          await db.ref(`posts/${postid}`).remove();
+          show_toast('decree deleted');
+        } catch (e) {
+          console.error("delete error:", e);
+          show_toast('error deleting decree');
+        }
+      }
+
+      function search_posts(query) {
+        query = query.toLowerCase();
+        if (!query) {
+          render_posts(posts);
           return;
         }
-        
-        if (!confirm('Delete this post?')) return;
-        
-        const db = firebase.database();
-        await db.ref(`posts/${postId}`).remove();
-        showToast('Post deleted');
-      } catch (e) {
-        console.error("Delete error:", e);
-        showToast('Error deleting post');
+        const filtered = posts.filter(([key, post]) => post.content.toLowerCase().includes(query));
+        render_posts(filtered);
       }
-    }
 
-    // Copy post link
-    function copyLink(postId) {
-      const url = window.location.origin + '#' + postId;
-      navigator.clipboard.writeText(url).then(() => {
-        showToast('Link copied to clipboard');
-      }).catch(() => {
-        showToast('Failed to copy link');
-      });
-    }
-
-    // Search posts
-    function searchPosts(query) {
-      query = query.toLowerCase();
-      
-      if (!query) {
-        renderPosts(posts);
-        return;
-      }
-      
-      const filtered = posts.filter(([key, post]) => 
-        post.content.toLowerCase().includes(query)
-      );
-      
-      renderPosts(filtered);
-    }
-
-    // Render a post
-    async function renderPost(key, post, timeline) {
-      const date = new Date(post.timestamp);
-      const postEl = document.createElement('div');
-      postEl.className = 'post';
-      postEl.id = `post-${key}`;
-
-      const isAuthenticated = await auth0Client.isAuthenticated();
-      const user = isAuthenticated ? await auth0Client.getUser() : null;
-      const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
-      
-      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
-      const formattedDate = `${dateStr}, ${timeStr}`;
-      
-      postEl.innerHTML = `
-        <div class="post-header">
-          <div class="timestamp">Posted on ${formattedDate}</div>
-          <div class="post-actions">
-            ${isAdmin ? `<button onclick="deletePost('${key}')" title="Delete post">delete</button>` : ''}
-            <button onclick="copyLink('${key}')" title="Copy link">share</button>
+      async function render_post(key, post, timeline) {
+        const dateobj = new Date(post.timestamp);
+        const timeStr = dateobj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateStr = dateobj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+        const formatted = `${dateStr}, ${timeStr}`;
+        const postel = document.createElement('div');
+        postel.className = 'post';
+        postel.id = `post-${key}`;
+        const isauthenticated = await auth0client.isAuthenticated();
+        const user = isauthenticated ? await auth0client.getUser() : null;
+        const isadmin = isauthenticated && user && user.email === "sharvenium@gmail.com";
+        postel.innerHTML = `
+          <div class="post-header">
+            <div class="timestamp">${formatted}</div>
+            ${isadmin ? `<div class="post-actions">
+              <button onclick="delete_post('${key}')" title="delete decree">delete</button>
+            </div>` : ''}
           </div>
-        </div>
-        <hr class="post-separator">
-        <div class="content">${marked.parse(post.content)}</div>
-      `;
+          <div class="post-content">${marked.parse(post.content)}</div>
+        `;
+        postel.querySelectorAll('pre code').forEach(block => {
+          hljs.highlightElement(block);
+        });
+        timeline.appendChild(postel);
+      }
 
-      postEl.querySelectorAll('pre code').forEach(block => {
-        hljs.highlightElement(block);
-      });
-      
-      timeline.appendChild(postEl);
-    }
+      function load_posts() {
+        const db = firebase.database();
+        db.ref('posts').on('value', async (snapshot) => {
+          const timeline = document.getElementById('timeline');
+          timeline.innerHTML = '';
+          const postsdata = snapshot.val();
+          if (!postsdata) {
+            show_empty_state();
+            update_stats_count();
+            return;
+          }
+          posts = Object.entries(postsdata)
+            .filter(([, post]) => !post.isdraft)
+            .sort(([, a], [, b]) => b.timestamp - a.timestamp);
+          update_stats_count();
+          render_posts(posts);
+        });
+      }
 
-    // Load posts from Firebase
-    function loadPosts() {
-      const db = firebase.database();
-      db.ref('posts').on('value', async (snapshot) => {
+      function show_empty_state() {
+        const timeline = document.getElementById('timeline');
+        timeline.innerHTML = `<div class="empty-state" style="text-align:center; padding:40px 0; color:var(--subtle)"><p>no decrees yet</p></div>`;
+      }
+
+      function render_posts(postslist) {
         const timeline = document.getElementById('timeline');
         timeline.innerHTML = '';
-        
-        const postsData = snapshot.val();
-        if (!postsData) {
-          showEmptyState();
-          updateStats(0, 0, 0);
+        if (postslist.length === 0) {
+          if (searchactive && document.getElementById('search-input').value) {
+            timeline.innerHTML = `<div class="empty-state" style="text-align:center; padding:40px 0; color:var(--subtle)"><p>no decrees matching your search</p></div>`;
+          } else {
+            show_empty_state();
+          }
           return;
         }
-
-        posts = Object.entries(postsData)
-          .filter(([, post]) => !post.isDraft)
-          .sort(([, a], [, b]) => b.timestamp - a.timestamp);
-
-        updateStatsCount();
-        renderPosts(posts);
-      });
-    }
-
-    // Show empty state when no posts exist
-    function showEmptyState() {
-      const timeline = document.getElementById('timeline');
-      timeline.innerHTML = `
-        <div class="empty-state">
-          <p>No posts yet</p>
-        </div>
-      `;
-    }
-
-    // Render a list of posts
-    function renderPosts(postsToRender) {
-      const timeline = document.getElementById('timeline');
-      timeline.innerHTML = '';
-      
-      if (postsToRender.length === 0) {
-        if (searchActive && document.getElementById('searchInput').value) {
-          timeline.innerHTML = `
-            <div class="empty-state">
-              <p>No posts matching your search</p>
-            </div>
-          `;
-        } else {
-          showEmptyState();
-        }
-        return;
+        postslist.forEach(postdata => {
+          render_post(postdata[0], postdata[1], timeline);
+        });
       }
-      
-      postsToRender.forEach(postData => {
-        renderPost(postData[0], postData[1], timeline);
-      });
-    }
 
-    // Update stats counts
-    function updateStatsCount() {
-      const total = posts.length;
-      const todayStr = new Date().toDateString();
-      const todayCount = posts.filter(([, p]) => 
-        new Date(p.timestamp).toDateString() === todayStr
-      ).length;
-      
-      let totalWords = 0;
-      posts.forEach(([, post]) => {
-        if (post.wordCount) {
-          totalWords += post.wordCount;
-        } else {
-          totalWords += countWords(post.content);
-        }
-      });
-      
-      document.getElementById('totalPosts').textContent = `total posts: ${total}`;
-      document.getElementById('todayPosts').textContent = `posts today: ${todayCount}`;
-      document.getElementById('wordCount').textContent = `total words: ${totalWords}`;
-    }
-
-    // Toggle between light and dark theme
-    function toggleTheme() {
-      isDark = !isDark;
-      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-      document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    }
-
-    // Show toast notification
-    function showToast(message) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.style.display = 'block';
-      
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 3000);
-    }
-
-    // Handle direct links to posts via hash
-    function handleDirectLinks() {
-      const hash = window.location.hash;
-      if (hash && hash.length > 1) {
-        const postId = hash.substring(1);
-        setTimeout(() => {
-          const el = document.getElementById(`post-${postId}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-            el.style.boxShadow = '0 0 0 2px var(--primary)';
-            setTimeout(() => {
-              el.style.boxShadow = '';
-            }, 2000);
+      function update_stats_count() {
+        const total = posts.length;
+        const todayCount = posts.filter(([, p]) => new Date(p.timestamp).toDateString() === new Date().toDateString()).length;
+        let totalwords = 0;
+        posts.forEach(([, post]) => {
+          if (post.wordcount) {
+            totalwords += post.wordcount;
+          } else {
+            totalwords += count_words(post.content);
           }
-        }, 500);
+        });
+        document.getElementById('total-posts').textContent = `total posts: ${total}`;
+        document.getElementById('today-posts').textContent = `posts today: ${todayCount}`;
+        document.getElementById('word-count').textContent = `total words: ${totalwords}`;
       }
-    }
 
-    // Add keyboard shortcuts
-    function setupKeyboardShortcuts() {
-      document.addEventListener('keydown', async e => {
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        const user = isAuthenticated ? await auth0Client.getUser() : null;
-        const isAdmin = isAuthenticated && user && user.email === "sharvenium@gmail.com";
-        
-        if (isAdmin && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-          publishPost(true);
-          e.preventDefault();
-        }
-        
-        if (e.key === 'Escape' && searchActive) {
-          clearSearch();
-          toggleSearch();
-        }
-        
-        if (e.key === '/' && !searchActive && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-          toggleSearch();
-          e.preventDefault();
-        }
-      });
-    }
-
-    // Set up back-to-top button visibility
-    window.addEventListener('scroll', () => {
-      const backToTop = document.querySelector('.back-to-top');
-      if (window.scrollY > 300) {
-        backToTop.style.display = 'block';
-      } else {
-        backToTop.style.display = 'none';
+      function toggle_theme() {
+        isdark = !isdark;
+        document.documentElement.setAttribute('data-theme', isdark ? 'dark' : 'light');
+        document.getElementById('theme-toggle').textContent = isdark ? '☀️' : '🌙';
+        localStorage.setItem('theme', isdark ? 'dark' : 'light');
       }
-    });
 
-    // Set up event listeners
-    document.getElementById('loginBtn').onclick = login;
-    document.getElementById('logoutBtn').onclick = logout;
+      function show_toast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
+      }
 
-    // Initialize everything
-    window.onload = async () => {
-      await initAuth0();
-      initFirebase();
-      initPresence();
-      setupTypingListener();
-      initDraftViewer();
-      setupKeyboardShortcuts();
-      handleDirectLinks();
-    };
-  </script>
-</body>
+      function handle_direct_links() {
+        const hash = window.location.hash;
+        if (hash && hash.length > 1) {
+          const postid = hash.substring(1);
+          setTimeout(() => {
+            const el = document.getElementById(`post-${postid}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth' });
+              el.style.boxShadow = '0 0 0 2px var(--primary)';
+              setTimeout(() => { el.style.boxShadow = ''; }, 2000);
+            }
+          }, 500);
+        }
+      }
+
+      function setup_keyboard_shortcuts() {
+        document.addEventListener('keydown', async (e) => {
+          const isauthenticated = await auth0client.isAuthenticated();
+          const user = isauthenticated ? await auth0client.getUser() : null;
+          const isadmin = isauthenticated && user && user.email === "sharvenium@gmail.com";
+          if (isadmin && e.key === 'enter' && (e.metaKey || e.ctrlKey)) {
+            publish_post(true);
+            e.preventDefault();
+          }
+          if (e.key === 'escape' && searchactive) {
+            clear_search();
+            toggle_search();
+          }
+          if (e.key === '/' && !searchactive && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            toggle_search();
+            e.preventDefault();
+          }
+        });
+      }
+
+      document.getElementById('login-btn').onclick = login;
+      document.getElementById('logout-btn').onclick = logout;
+
+      window.onload = async () => {
+        await init_auth0();
+        init_firebase();
+        init_presence();
+        setup_typing_listener();
+        init_draft_viewer();
+        setup_keyboard_shortcuts();
+        handle_direct_links();
+      };
+    </script>
+  </body>
 </html>
